@@ -42,7 +42,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_kwargs)
 
 
-class User(models.Model):
+class User(AbstractUser):
     username = None
     email = models.EmailField(_("Email address"), unique=True)
 
