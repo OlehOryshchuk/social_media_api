@@ -40,3 +40,15 @@ class UserManager(BaseUserManager):
         })
 
         return self._create_user(email, password, **extra_kwargs)
+
+
+class User(models.Model):
+    username = None
+    email = models.EmailField(_("Email address"), unique=True)
+
+    # Specifies email as the unique identifier for a user.
+    # and create superuser through email and password
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
