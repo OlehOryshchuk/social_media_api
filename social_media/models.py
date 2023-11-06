@@ -86,6 +86,14 @@ class Post(models.Model):
         related_name="posts"
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at"])
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.author} - {self.created_at}"
+
 
 class PostRate(models.Model):
     like = models.BooleanField()
