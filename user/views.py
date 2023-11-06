@@ -10,12 +10,14 @@ from .serializers import UserSerializer
 
 class CreateUserView(generics.CreateAPIView):
     """Create and save user in Database User table"""
+
     serializer_class = UserSerializer
 
 
 class ManagerUserView(generics.RetrieveUpdateAPIView):
     """Autentication is required. Return current user and
     user can update his credentials"""
+
     serializer_class = UserSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
