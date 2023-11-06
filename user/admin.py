@@ -7,10 +7,10 @@ from . models import User
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    """Define admin model fot custom User model with email field."""
+    """Define admin model for the custom User model with email and username fields."""
 
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
+        (None, {"fields": ("email", "username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name")}),
         (
             _("Permissions"),
@@ -31,10 +31,10 @@ class UserAdmin(DjangoUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "password1", "password2"),
+                "fields": ("email", "username", "password1", "password2"),
             },
         ),
     )
-    list_display = ("email", "first_name", "last_name", "is_staff")
-    search_fields = ("email", "first_name", "last_name")
+    list_display = ("email", "username", "first_name", "last_name", "is_staff")
+    search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("email",)
