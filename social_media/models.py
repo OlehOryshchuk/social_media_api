@@ -84,3 +84,32 @@ class PostRate(models.Model):
 
     def __str__(self) -> str:
         return f"{self.profile} {self.post}"
+
+
+class Comment(models.Model):
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    content = models.TextField(blank=True)
+    reply_to_comment = models.ForeignKey(
+        "self",
+        related_name="replies",
+        on_delete=models.SET_NULL
+    )
+    likes = models.ManyToManyField(
+        Profile,
+        related_name="liked_comments",
+        through="CommentRate",
+        through_fields=("profile", "comment")
+    )
+
+    def __str__(self) -> str:
+        return f"{self.author} {self.post}"
+
+
+class CommentRate(models.Model):
+    like = models.BooleanField()
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.profile} {self.comment}"
