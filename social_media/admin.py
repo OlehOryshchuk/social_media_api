@@ -32,3 +32,19 @@ class PostAdmin(admin.ModelAdmin):
     ]
     list_filter = ["tags__name"]
 
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    search_fields = ["author__username"]
+    list_display = [
+        "author",
+        "image",
+        "content",
+        "created_at",
+    ]
+    list_filter = ["tags__name"]
+
+
+admin.site.register(PostRate)
+admin.site.register(Comment)
+admin.site.register(CommentRate)
