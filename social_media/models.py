@@ -74,7 +74,17 @@ class Post(models.Model):
         through="PostRate",
         blank=True,
     )
-    tags = TaggableManager(blank=True)
+    comments = models.ManyToManyField(
+        Profile,
+        related_name="comments",
+        through="Comment",
+        through_fields=("author", "post"),
+        blank=True
+    )
+    tags = TaggableManager(
+        blank=True,
+        related_name="posts"
+    )
 
 
 class PostRate(models.Model):
