@@ -72,14 +72,14 @@ class Post(models.Model):
         Profile,
         related_name="liked_posts",
         through="PostRate",
-        through_fields=("profile", "post"),
+        through_fields=("post", "profile"),
         blank=True,
     )
     comments = models.ManyToManyField(
         Profile,
         related_name="comments",
         through="Comment",
-        through_fields=("author", "post"),
+        through_fields=("post", "author"),
         blank=True
     )
     tags = TaggableManager(
@@ -112,13 +112,15 @@ class Comment(models.Model):
     reply_to_comment = models.ForeignKey(
         "self",
         related_name="replies",
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     likes = models.ManyToManyField(
         Profile,
         related_name="liked_comments",
         through="CommentRate",
-        through_fields=("profile", "comment")
+        through_fields=("comment", "profile")
     )
 
     def __str__(self) -> str:
