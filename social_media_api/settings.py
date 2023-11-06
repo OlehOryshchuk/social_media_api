@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "knox",
 
     "user",
-    "social_media_api",
+    "social_media",
 ]
 
 MIDDLEWARE = [
