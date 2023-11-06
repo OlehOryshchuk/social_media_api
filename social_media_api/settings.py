@@ -135,3 +135,6 @@ AUTH_USER_MODEL = "user.User"
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES':'knox.auth.TokenAuthentication',),
 # }
+
+# Set tags field in Post model to be CASE-INSENSITIVE
+TAGGIT_CASE_INSENSITIVE = True
