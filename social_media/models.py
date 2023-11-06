@@ -72,6 +72,7 @@ class Post(models.Model):
         Profile,
         related_name="liked_posts",
         through="PostRate",
+        through_fields=("profile", "post"),
         blank=True,
     )
     comments = models.ManyToManyField(
