@@ -50,7 +50,7 @@ class TagSerializer(serializers.ModelSerializer):
 class PostListSerializer(PostSerializer):
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
-    numb_of_comments = serializers.IntegerField(read_only=True)
+    num_of_comments = serializers.IntegerField(read_only=True)
     tags = TagSerializer(
         many=True, read_only=True
     )
