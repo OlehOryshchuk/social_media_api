@@ -14,8 +14,8 @@ from user.models import User
 
 def get_file_new_name(instance) -> str:
     """Return filename base on instance"""
-    if isinstance(instance, User):
-        return f"{instance.username}_picture"
+    if getattr(instance, "username"):
+        return f"{instance.username}"
     return f"{instance.author.username}_post"
 
 
@@ -31,6 +31,7 @@ class Profile(models.Model):
         on_delete=models.CASCADE,
         related_name="profile"
     )
+    username = models.CharField(max_length=30, unique=True)
     followings = models.ManyToManyField(
         "self",
         related_name="followers",
@@ -45,7 +46,7 @@ class Profile(models.Model):
     bio = models.TextField(max_length=1000, blank=True)
 
     def __str__(self) -> str:
-        return self.user.username
+        return self.username
 
     def get_followers(self):
         """Return profiles that are following current profile"""
