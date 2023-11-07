@@ -31,9 +31,12 @@ class ProfileListSerializer(ProfileSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    author = ProfileListSerializer(read_only=True)
+
     class Meta:
         model = Post,
         fields = [
+            "author",
             "content",
             "image",
             "tags",
