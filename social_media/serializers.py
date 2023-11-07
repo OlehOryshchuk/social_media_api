@@ -58,6 +58,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentListSerializer(CommentSerializer):
+    """See posts comments, and every comment have number
+    of likes/dislikes/replies and see who is the author of
+    comment"""
     # TODO Make annotations for below 3 fields
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
@@ -77,10 +80,12 @@ class CommentListSerializer(CommentSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ["id","name"]
+        fields = ["id", "name"]
 
 
 class PostListSerializer(PostSerializer):
+    """List of posts, where we can see number of
+    likes/dislikes/comments and post tags"""
     # TODO Make annotations for below 3 fields
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
@@ -104,6 +109,7 @@ class PostListSerializer(PostSerializer):
 
 
 class PostDetailSerializer(PostSerializer):
+    """See all comments under specific post"""
     comments = CommentListSerializer(
         many=True, read_only=True
     )
@@ -121,6 +127,7 @@ class PostDetailSerializer(PostSerializer):
 
 
 class ProfileDetailSerializer(ProfileSerializer):
+    """Detail information of current user profile"""
     num_of_followers = serializers.SlugRelatedField(
         read_only=True, sluf_field="num_of_followers"
     )
