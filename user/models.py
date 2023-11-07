@@ -53,5 +53,9 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    def get_profiles(self):
+        """Return current user profiles"""
+        return self.profiles.all()
+
     def __str__(self) -> str:
         return self.email
