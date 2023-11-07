@@ -94,3 +94,19 @@ class PostListSerializer(PostSerializer):
             "num_of_dislikes",
             "numb_of_comments",
         ]
+
+
+class PostDetailSerializer(PostSerializer):
+    comments = CommentListSerializer(
+        many=True, read_only=True
+    )
+
+    class Meta:
+        model = Post
+        fields = [
+            "content",
+            "image",
+            "tags",
+            "created_at",
+            "comments"
+        ]
