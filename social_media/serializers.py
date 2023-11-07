@@ -55,6 +55,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentListSerializer(CommentSerializer):
+    # TODO Make annotations for below 3 fields
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_replies = serializers.IntegerField(read_only=True)
@@ -76,6 +77,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class PostListSerializer(PostSerializer):
+    # TODO Make annotations for below 3 fields
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
