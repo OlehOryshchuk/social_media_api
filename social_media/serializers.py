@@ -46,3 +46,23 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ["name"]
 
+
+class PostListSerializer(PostSerializer):
+    num_of_likes = serializers.IntegerField(read_only=True)
+    num_of_dislikes = serializers.IntegerField(read_only=True)
+    numb_of_comments = serializers.IntegerField(read_only=True)
+    tags = TagSerializer(
+        many=True, read_only=True
+    )
+
+    class Meta:
+        model = Post
+        fields = [
+            "content",
+            "image",
+            "tags",
+            "created_at",
+            "num_of_likes",
+            "num_of_dislikes",
+            "numb_of_comments",
+        ]
