@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer
+from taggit.models import Tag
 
 from .models import (
     Profile,
@@ -36,3 +37,10 @@ class CommentSerializer(ModelSerializer):
             "content",
             "reply_to_comment"
         ]
+
+
+class TagSerializer(ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["name"]
+
