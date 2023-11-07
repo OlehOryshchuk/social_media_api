@@ -44,14 +44,14 @@ class Profile(models.Model):
         return self.user
 
     @property
-    def get_followers(self):
-        """Return profiles that are following current profile"""
-        return self.followers.all()
+    def num_of_followers(self):
+        """Return number of  profiles that are following current profile"""
+        return self.followers.count()
 
     @property
-    def get_followings(self):
-        """Return profiles that current profile is following """
-        return self.followings.all()
+    def num_of_followings(self):
+        """Return number of profiles that current profile is following """
+        return self.followings.count()
 
 
 class Post(models.Model):
