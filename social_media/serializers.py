@@ -15,13 +15,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             "id",
-            "username",
             "profile_picture",
             "bio",
         ]
 
 
 class ProfileListSerializer(ProfileSerializer):
+    username = serializers.CharField(
+        read_only=True, source="user.username"
+    )
+
     class Meta:
         model = Profile,
         fields = [
