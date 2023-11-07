@@ -3,6 +3,11 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext as _
 
 from .models import User
+from social_media.models import Profile
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
 
 
 @admin.register(User)
@@ -38,3 +43,4 @@ class UserAdmin(DjangoUserAdmin):
     list_display = ("email", "username", "first_name", "last_name", "is_staff")
     search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("email",)
+    inlines = [ProfileInline]
