@@ -14,6 +14,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
+            "id",
             "username",
             "profile_picture",
             "bio",
@@ -36,6 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post,
         fields = [
+            "id",
             "author",
             "content",
             "image",
@@ -48,6 +50,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = [
+            "id",
             "content",
             "reply_to_comment",
             "created_at"
@@ -63,6 +66,7 @@ class CommentListSerializer(CommentSerializer):
 
     class Meta(CommentSerializer.Meta):
         fields = CommentSerializer.Meta.fields + [
+            "id",
             "author",
             "num_of_likes",
             "num_of_dislikes",
@@ -73,7 +77,7 @@ class CommentListSerializer(CommentSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ["name"]
+        fields = ["id","name"]
 
 
 class PostListSerializer(PostSerializer):
@@ -88,6 +92,7 @@ class PostListSerializer(PostSerializer):
     class Meta:
         model = Post
         fields = [
+            "id",
             "content",
             "image",
             "tags",
@@ -106,6 +111,7 @@ class PostDetailSerializer(PostSerializer):
     class Meta:
         model = Post
         fields = [
+            "id",
             "content",
             "image",
             "tags",
