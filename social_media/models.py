@@ -43,10 +43,12 @@ class Profile(models.Model):
     def __str__(self) -> str:
         return self.user
 
+    @property
     def get_followers(self):
         """Return profiles that are following current profile"""
         return self.followers.all()
 
+    @property
     def get_followings(self):
         """Return profiles that current profile is following """
         return self.followings.all()
