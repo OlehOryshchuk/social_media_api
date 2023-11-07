@@ -26,10 +26,10 @@ def custom_image_file_path(instance, filename):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="profile"
+        related_name="profiles"
     )
     username = models.CharField(max_length=30, unique=True)
     followings = models.ManyToManyField(
