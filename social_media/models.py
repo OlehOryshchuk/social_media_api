@@ -53,6 +53,11 @@ class Profile(models.Model):
         """Return number of profiles that current profile is following """
         return self.followings.count()
 
+    @property
+    def num_of_posts(self):
+        """Return number of posts that current profile is following """
+        return self.posts.count()
+
 
 class Post(models.Model):
     author = models.ForeignKey(
