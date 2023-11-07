@@ -55,10 +55,18 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentListSerializer(CommentSerializer):
+    num_of_likes = serializers.IntegerField(read_only=True)
+    num_of_dislikes = serializers.IntegerField(read_only=True)
+    num_of_replies = serializers.IntegerField(read_only=True)
     author = ProfileListSerializer(many=True, read_only=True)
 
     class Meta(CommentSerializer.Meta):
-        fields = CommentSerializer.Meta.fields + ["author"]
+        fields = CommentSerializer.Meta.fields + [
+            "author",
+            "num_of_likes",
+            "num_of_dislikes",
+            "num_of_replies"
+        ]
 
 
 class TagSerializer(serializers.ModelSerializer):
