@@ -28,3 +28,11 @@ class PostSerializer(ModelSerializer):
             "tags"
         ]
 
+
+class CommentSerializer(ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = [
+            "content",
+            "reply_to_comment"
+        ]
