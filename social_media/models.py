@@ -110,6 +110,7 @@ class Comment(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     content = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     reply_to_comment = models.ForeignKey(
         "self",
         related_name="replies",
