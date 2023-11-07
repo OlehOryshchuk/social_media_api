@@ -118,3 +118,26 @@ class PostDetailSerializer(PostSerializer):
             "created_at",
             "comments"
         ]
+
+
+class ProfileDetailSerializer(ProfileSerializer):
+    num_of_followers = serializers.SlugRelatedField(
+        read_only=True, sluf_field="num_of_followers"
+    )
+    num_of_followings = serializers.SlugRelatedField(
+        read_only=True, sluf_field="num_of_followings"
+    )
+    num_of_posts = serializers.SlugRelatedField(
+        read_only=True, sluf_field="num_of_posts"
+    )
+    posts = PostListSerializer(
+        many=True, read_only=True
+    )
+
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + [
+            "num_of_followers",
+            "num_of_followings",
+            "num_of_posts",
+            "posts",
+        ]
