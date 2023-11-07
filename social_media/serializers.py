@@ -17,3 +17,14 @@ class ProfileSerializer(ModelSerializer):
             "profile_picture",
             "bio",
         ]
+
+
+class PostSerializer(ModelSerializer):
+    class Meta:
+        model = Post,
+        fields = [
+            "content",
+            "image",
+            "tags"
+        ]
+
