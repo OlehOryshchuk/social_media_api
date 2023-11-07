@@ -20,6 +20,16 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
 
+class ProfileListSerializer(ProfileSerializer):
+    class Meta:
+        model = Profile,
+        fields = [
+            "id",
+            "username",
+            "profile_picture"
+        ]
+
+
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post,
@@ -39,6 +49,13 @@ class CommentSerializer(serializers.ModelSerializer):
             "reply_to_comment",
             "created_at"
         ]
+
+
+class CommentListSerializer(CommentSerializer):
+    author = ProfileListSerializer(many=True, read_only=True)
+
+    class Meta(CommentSerializer.Meta):
+        fields = CommentSerializer.Meta.fields + ["author"]
 
 
 class TagSerializer(serializers.ModelSerializer):
