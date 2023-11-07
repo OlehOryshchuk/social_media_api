@@ -11,8 +11,8 @@ from taggit.managers import TaggableManager
 def get_file_new_name(instance) -> str:
     """Return filename base on instance"""
     if getattr(instance, "username"):
-        return f"{instance.username}"
-    return f"{instance.author.username}_post"
+        return f"{instance.user.username}"
+    return f"{instance.author.user.username}_post"
 
 
 def custom_image_file_path(instance, filename):
@@ -22,12 +22,11 @@ def custom_image_file_path(instance, filename):
 
 
 class Profile(models.Model):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="profiles"
+        related_name="profile"
     )
-    username = models.CharField(max_length=30, unique=True)
     followings = models.ManyToManyField(
         "self",
         related_name="followers",
@@ -42,7 +41,7 @@ class Profile(models.Model):
     bio = models.TextField(max_length=1000, blank=True)
 
     def __str__(self) -> str:
-        return self.username
+        return self.user
 
     def get_followers(self):
         """Return profiles that are following current profile"""
