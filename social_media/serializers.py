@@ -24,12 +24,6 @@ class ProfileListSerializer(ProfileSerializer):
     username = serializers.CharField(
         read_only=True, source="user.username"
     )
-    is_following = serializers.SerializerMethodField()
-
-    def get_is_following(self, obj):
-        """Return True if user is following current profile else False"""
-        user = self.context["request"].user
-        return user.profile.followings.filter(id=obj.id).exists()
 
     class Meta:
         model = Profile,
@@ -146,9 +140,15 @@ class ProfileDetailSerializer(ProfileSerializer):
     num_of_posts = serializers.SlugRelatedField(
         read_only=True, sluf_field="num_of_posts"
     )
+    is_following = serializers.SerializerMethodField()
     posts = PostListSerializer(
         many=True, read_only=True
     )
+
+    def get_is_following(self, obj):
+        """Return True if user is following current profile else False"""
+        user = self.context["request"].user
+        return user.profile.followings.filter(id=obj.id).exists()
 
     class Meta(ProfileSerializer.Meta):
         fields = ProfileSerializer.Meta.fields + [
