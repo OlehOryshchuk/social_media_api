@@ -71,10 +71,15 @@ class CommentListSerializer(CommentSerializer):
     """See posts comments, and every comment have number
     of likes/dislikes/replies and see who is the author of
     comment"""
-    # TODO Make annotations for below 3 fields
+
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_replies = serializers.IntegerField(read_only=True)
+    replies_url = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="comments-detail",
+        lookup_field="id"
+    )
     author = ProfileListSerializer(many=True, read_only=True)
 
     class Meta(CommentSerializer.Meta):
@@ -97,7 +102,7 @@ class PostListSerializer(PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
     profile_url = serializers.HyperlinkedIdentityField(
-        view_name="profile-posts",
+        view_name="profile-detail",
         lookup_field="author__id",
         read_only=True
     )
@@ -119,8 +124,10 @@ class PostListSerializer(PostSerializer):
 
 class PostDetailSerializer(PostSerializer):
     """See all comments under specific post"""
-    comments = CommentListSerializer(
-        many=True, read_only=True
+    comments_url = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="post-comments",
+        lookup_field="id"
     )
 
     class Meta:
@@ -131,7 +138,7 @@ class PostDetailSerializer(PostSerializer):
             "image",
             "tags",
             "created_at",
-            "comments"
+            "comments_url"
         ]
 
 
@@ -147,8 +154,9 @@ class ProfileDetailSerializer(ProfileSerializer):
         read_only=True, sluf_field="num_of_posts"
     )
     is_following = serializers.SerializerMethodField()
-    posts = PostListSerializer(
-        many=True, read_only=True
+    posts = serializers.HyperlinkedIdentityField(
+        view_name="profile-posts",
+        read_only=True
     )
 
     def get_is_following(self, obj):
