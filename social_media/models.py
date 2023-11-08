@@ -95,6 +95,21 @@ class Post(models.Model):
             models.Index(fields=["created_at"])
         ]
 
+    @property
+    def num_of_likes(self) -> int:
+        """Return post number of likes"""
+        return self.post_rate_set.filter(like=True).count()
+
+    @property
+    def num_of_dislikes(self) -> int:
+        """Return post number of dislikes"""
+        return self.post_rate_set.filter(like=False).count()
+
+    @property
+    def num_of_comments(self) -> int:
+        """Return post number of dislikes"""
+        return self.comment_set.count()
+
     def __str__(self) -> str:
         return f"{self.author} - {self.created_at}"
 
