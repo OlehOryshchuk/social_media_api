@@ -34,6 +34,13 @@ class ProfileListSerializer(ProfileSerializer):
         ]
 
 
+class ProfileImageUpload(ProfileSerializer):
+    """Upload profile picture"""
+    class Meta:
+        model = Profile
+        fields = ["id", "profile_picture"]
+
+
 class PostSerializer(serializers.ModelSerializer):
     author = ProfileListSerializer(read_only=True)
 
