@@ -124,10 +124,8 @@ class PostListSerializer(PostSerializer):
 
 class PostDetailSerializer(PostSerializer):
     """See all comments under specific post"""
-    comments_url = serializers.HyperlinkedIdentityField(
-        read_only=True,
-        view_name="post-comments",
-        lookup_field="id"
+    comments = CommentListSerializer(
+        read_only=True, many=True
     )
 
     class Meta:
@@ -138,7 +136,7 @@ class PostDetailSerializer(PostSerializer):
             "image",
             "tags",
             "created_at",
-            "comments_url"
+            "comments"
         ]
 
 
