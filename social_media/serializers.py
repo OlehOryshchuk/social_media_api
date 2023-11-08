@@ -96,7 +96,11 @@ class TagSerializer(serializers.ModelSerializer):
 class PostListSerializer(PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
-    # TODO Make annotations for below 3 fields
+    profile_url = serializers.HyperlinkedIdentityField(
+        view_name="profile-posts",
+        lookup_field="author__id",
+        read_only=True
+    )
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
@@ -104,14 +108,9 @@ class PostListSerializer(PostSerializer):
         many=True, read_only=True
     )
 
-    class Meta:
-        model = Post
-        fields = [
-            "id",
-            "content",
-            "image",
-            "tags",
-            "created_at",
+    class Meta(PostSerializer.Meta):
+        fields = PostSerializer.Meta.fields + [
+            "profile_url",
             "num_of_likes",
             "num_of_dislikes",
             "numb_of_comments",
