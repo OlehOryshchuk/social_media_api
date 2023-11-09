@@ -43,21 +43,6 @@ class Profile(models.Model):
     def __str__(self) -> str:
         return self.user
 
-    @property
-    def num_of_followers(self):
-        """Return number of  profiles that are following current profile"""
-        return self.followers.count()
-
-    @property
-    def num_of_followings(self):
-        """Return number of profiles that current profile is following """
-        return self.followings.count()
-
-    @property
-    def num_of_posts(self):
-        """Return number of posts that current profile is following """
-        return self.posts.count()
-
 
 class Post(models.Model):
     author = models.ForeignKey(
@@ -94,21 +79,6 @@ class Post(models.Model):
         indexes = [
             models.Index(fields=["created_at"])
         ]
-
-    @property
-    def num_of_likes(self) -> int:
-        """Return post number of likes"""
-        return self.post_rate_set.filter(like=True).count()
-
-    @property
-    def num_of_dislikes(self) -> int:
-        """Return post number of dislikes"""
-        return self.post_rate_set.filter(like=False).count()
-
-    @property
-    def num_of_comments(self) -> int:
-        """Return post number of dislikes"""
-        return self.comment_set.count()
 
     def __str__(self) -> str:
         return f"{self.author} - {self.created_at}"
