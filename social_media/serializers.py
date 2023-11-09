@@ -98,6 +98,17 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+class FilterPostByTagURL(serializers.ModelSerializer):
+    tag = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="all-tag-posts"
+    )
+
+    class Meta:
+        model = Tag
+        fields = ["id", "tag"]
+
+
 class PostListSerializer(PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
@@ -106,37 +117,31 @@ class PostListSerializer(PostSerializer):
         lookup_field="author__id",
         read_only=True
     )
+    comments_url = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="post-comments",
+        lookup_field="id"
+    )
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
-    tags = TagSerializer(
+    tags_url = FilterPostByTagURL(
         many=True, read_only=True
     )
 
-    class Meta(PostSerializer.Meta):
-        fields = PostSerializer.Meta.fields + [
+    class Meta:
+        fields = [
+            "id",
+            "author",
+            "content",
+            "image",
+            "created_at",
             "profile_url",
+            "comments_url",
+            "tags_url",
             "num_of_likes",
             "num_of_dislikes",
             "numb_of_comments",
-        ]
-
-
-class PostDetailSerializer(PostSerializer):
-    """See all comments under specific post"""
-    comments = CommentListSerializer(
-        read_only=True, many=True
-    )
-
-    class Meta:
-        model = Post
-        fields = [
-            "id",
-            "content",
-            "image",
-            "tags",
-            "created_at",
-            "comments"
         ]
 
 
