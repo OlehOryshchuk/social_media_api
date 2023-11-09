@@ -138,3 +138,6 @@ AUTH_USER_MODEL = "user.User"
 
 # Set tags field in Post model to be CASE-INSENSITIVE
 TAGGIT_CASE_INSENSITIVE = True
+
+# Filter posts that are created within POST_CREATED_AT_DAYS_AGO days
+POST_CREATED_AT_DAYS_AGO = 7

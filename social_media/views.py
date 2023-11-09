@@ -4,6 +4,7 @@ from django.db.models import (
     QuerySet,
 )
 from django.utils import timezone
+from django.conf import settings
 
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
@@ -170,9 +171,10 @@ class PostViewSet(
         # Make annotation for already paginated queryset
         # instead of all objects in queryset
         # and order posts by number of likes and dislikes
-        # and filter posts created seven days ago
+        # and filter posts that are created within POST_CREATED_AT_DAYS_AGO
+        days_ago = settings.POST_CREATED_AT_DAYS_AGO
+        days_ago = timezone.now() - timezone.timedelta(days=days_ago)
 
-        seven_days_ago = timezone.now() - timezone.timedelta(days=7)
         page = page.annotate(
             num_of_likes=Count(
                 "postrate_set",
@@ -189,7 +191,7 @@ class PostViewSet(
             "-num_of_likes",
             "num_of_dislikes",
         ).filter(
-            created_at__gt=seven_days_ago
+            created_at__gt=days_ago
         )
 
         if page is not None:
