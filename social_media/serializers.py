@@ -24,13 +24,19 @@ class ProfileListSerializer(ProfileSerializer):
     username = serializers.CharField(
         read_only=True, source="user.username"
     )
+    profile_url = serializers.HyperlinkedIdentityField(
+        view_name="profile-detail",
+        lookup_field="author__id",
+        read_only=True
+    )
 
     class Meta:
         model = Profile,
         fields = [
             "id",
             "username",
-            "profile_picture"
+            "profile_picture",
+            "profile_url",
         ]
 
 
@@ -98,25 +104,20 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-class FilterPostByTagURL(serializers.ModelSerializer):
-    tag = serializers.HyperlinkedIdentityField(
+class FilterPostByTagUrlSerializer(TagSerializer):
+    tag_url = serializers.HyperlinkedIdentityField(
         read_only=True,
         view_name="all-tag-posts"
     )
 
     class Meta:
         model = Tag
-        fields = ["id", "tag"]
+        fields = ["id", "name", "tag_url"]
 
 
 class PostListSerializer(PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
-    profile_url = serializers.HyperlinkedIdentityField(
-        view_name="profile-detail",
-        lookup_field="author__id",
-        read_only=True
-    )
     comments_url = serializers.HyperlinkedIdentityField(
         read_only=True,
         view_name="post-comments",
@@ -135,22 +136,16 @@ class PostListSerializer(PostSerializer):
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
-    tags_url = FilterPostByTagURL(
+    tags = FilterPostByTagURL(
         many=True, read_only=True
     )
 
-    class Meta:
-        fields = [
-            "id",
-            "author",
-            "content",
-            "image",
-            "created_at",
+    class Meta(PostSerializer.Meta):
+        fields = PostSerializer.Meta.fields + [
             "profile_url",
             "comments_url",
             "like_url",
             "dislike_url",
-            "tags_url",
             "num_of_likes",
             "num_of_dislikes",
             "numb_of_comments",
