@@ -122,6 +122,16 @@ class PostListSerializer(PostSerializer):
         view_name="post-comments",
         lookup_field="id"
     )
+    like_url = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="post-like",
+        lookup_field="id"
+    )
+    dislike_url = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="post-like",
+        lookup_field="id"
+    )
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
@@ -138,6 +148,8 @@ class PostListSerializer(PostSerializer):
             "created_at",
             "profile_url",
             "comments_url",
+            "like_url",
+            "dislike_url",
             "tags_url",
             "num_of_likes",
             "num_of_dislikes",
