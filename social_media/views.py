@@ -1,4 +1,9 @@
-from django.db.models import Count, F, QuerySet
+from django.db.models import (
+    Q,
+    Count,
+    QuerySet,
+)
+from django.utils import timezone
 
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
@@ -6,10 +11,10 @@ from rest_framework.decorators import action
 
 from taggit.models import Tag
 
+from .paginations import CustomPagination
 from .serializers import (
     PostSerializer,
     PostListSerializer,
-    PostDetailSerializer,
 
     CommentSerializer,
     CommentListSerializer,
@@ -119,3 +124,149 @@ class ProfileViewSet(viewsets.ModelViewSet):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PostViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """View for Creating/Delete/Update/List actions & also
+    like post/dislike or remove reaction from post & see all profiles
+    who disliked or liked specific profile"""
+    queryset = Post.objects.select_related(
+        "author"
+    ).prefetch_related(
+        "likes", "comments", "tags"
+    )
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        # If following_posts then return current user
+        # followings posts
+        current_profile = self.request.user.profile
+        following_posts: bool = self.request.query_params.get("following_posts", None)
+
+        if following_posts:
+            queryset = current_profile.followings.all()
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action in ("profiles_liked", "profiles_disliked"):
+            return ProfileListSerializer
+
+        if self.action == "list":
+            return PostListSerializer
+
+        return PostSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.queryset)
+
+        page = self.paginate_queryset(queryset)
+        # Make annotation for already paginated queryset
+        # instead of all objects in queryset
+        # and order posts by number of likes and dislikes
+        # and filter posts created seven days ago
+
+        seven_days_ago = timezone.now() - timezone.timedelta(days=7)
+        page = page.annotate(
+            num_of_likes=Count(
+                "postrate_set",
+                filter=Q(postrate_set__like=True)
+            ),
+            num_of_dislikes=Count(
+                "postrate_set",
+                filter=Q(postrate_set__like=False)
+            ),
+            num_of_comments=Count(
+                "comments__id",
+            ),
+        ).order_by(
+            "-num_of_likes",
+            "num_of_dislikes",
+        ).filter(
+            created_at__gt=seven_days_ago
+        )
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def _like_dislike_or_remove(self, request, like_value: bool) -> None:
+        """Like, dislike, or remove both"""
+        post = self.get_object()
+        current_profile = request.user.profile
+
+        post_rate, created = PostRate.objects.get_or_create(
+            post=post, profile=current_profile, defaults={"like": like_value}
+        )
+
+        if post_rate:
+            if post_rate.like == like_value:
+                # Remove our reaction to post
+                post_rate.remove()
+
+            else:
+                post_rate.like = like_value
+
+        post_rate.save()
+
+    def _get_post_profiles_who_likes_or_dislikes(self, request, like_value: bool):
+        """Return profiles that liked or disliked post"""
+        post = self.get_object()
+
+        try:
+            data = PostRate.objects.get(post=post).filter(like=like_value)
+        except PostRate.DoesNotExist:
+            return Response(
+                {"post_error": "Post Does Not Exist"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="like"
+    )
+    def like_unlike(self, request, pk):
+        """Like or unlike post"""
+        self._like_dislike_or_remove(request, True)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="dislike"
+    )
+    def dislike_remove_dislike(self, request, pk):
+        """DisLike post or remove dislike"""
+        self._like_dislike_or_remove(request, False)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["post"],
+        detail=True,
+    )
+    def profiles_liked(self, request, pk):
+        """Return profiles who liked post"""
+        self._get_post_profiles_who_likes_or_dislikes(request, True)
+
+    @action(
+        methods=["post"],
+        detail=True,
+    )
+    def profiles_disliked(self, request, pk):
+        """Return profiles who disliked post"""
+        self._get_post_profiles_who_likes_or_dislikes(request, False)
+
