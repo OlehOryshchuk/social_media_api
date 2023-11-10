@@ -61,6 +61,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return ProfileListSerializer
 
+        if self.action == "upload_profile_picture":
+            return ProfileImageUpload
+
         return ProfileSerializer
 
     def perform_create(self, serializer):
