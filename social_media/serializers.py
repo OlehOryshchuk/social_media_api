@@ -48,7 +48,6 @@ class ProfileImageUpload(ProfileSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = ProfileListSerializer(read_only=True)
 
     class Meta:
         model = Post,
@@ -136,7 +135,7 @@ class PostListSerializer(PostSerializer):
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
-    tags = FilterPostByTagURL(
+    tags = FilterPostByTagUrlSerializer(
         many=True, read_only=True
     )
 
