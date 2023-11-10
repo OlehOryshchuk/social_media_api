@@ -58,7 +58,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return ProfileDetailSerializer
 
-        if self.action == "list":
+        if self.action in ["list", "followings", "followers"]:
             return ProfileListSerializer
 
         if self.action == "upload_profile_picture":
