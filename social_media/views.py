@@ -167,6 +167,9 @@ class PostViewSet(
 
         return PostSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user.profile)
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.queryset)
 
