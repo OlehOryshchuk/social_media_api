@@ -97,6 +97,16 @@ class CommentListSerializer(CommentSerializer):
         ]
 
 
+class CommentDetailSerializer(CommentSerializer):
+    replies = CommentListSerializer(
+        read_only=True, many=True
+    )
+
+    class Meta:
+        model = Comment
+        fields = ["replies"]
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
