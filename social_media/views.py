@@ -64,6 +64,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if self.action == "upload_profile_picture":
             return ProfileImageUpload
 
+        if self.action == "profile_posts":
+            return PostListSerializer
+
         return ProfileSerializer
 
     def perform_create(self, serializer):
@@ -126,6 +129,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["get"],
+        detail=True,
+        url_path="posts"
+    )
+    def profile_posts(self, request, pk):
+        """Return Profile posts"""
+        profile = self.get_object()
+        data = profile.posts.all()
+        serializer = self.get_serializer(data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
