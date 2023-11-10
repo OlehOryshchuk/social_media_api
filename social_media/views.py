@@ -103,7 +103,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         methods=["get"],
         detail=True,
     )
-    def followings(self, request, pk=None):
+    def followers(self, request, pk=None):
         """Return list of profiles that are following current profile"""
         profile = self.get_object()
         followers = profile.followers.all()
