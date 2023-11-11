@@ -26,7 +26,7 @@ class ProfileListSerializer(ProfileSerializer):
     )
     profile_url = serializers.HyperlinkedIdentityField(
         view_name="profile-detail",
-        lookup_field="author__id",
+        lookup_field="id",
         read_only=True
     )
 
@@ -163,19 +163,21 @@ class PostListSerializer(PostSerializer):
 
 class ProfileDetailSerializer(ProfileSerializer):
     """Detail information of current user profile"""
-    num_of_followers = serializers.SlugRelatedField(
-        read_only=True, sluf_field="num_of_followers"
+    num_of_followers = serializers.IntegerField(
+        read_only=True
     )
-    num_of_followings = serializers.SlugRelatedField(
-        read_only=True, sluf_field="num_of_followings"
+    num_of_followings = serializers.IntegerField(
+        read_only=True
     )
-    num_of_posts = serializers.SlugRelatedField(
-        read_only=True, sluf_field="num_of_posts"
+    num_of_posts = serializers.IntegerField(
+        read_only=True
     )
     is_following = serializers.SerializerMethodField()
-    posts = serializers.HyperlinkedIdentityField(
+    posts = serializers.HyperlinkedRelatedField(
         view_name="profile-posts",
-        read_only=True
+        read_only=True,
+        many=True,
+        lookup_field="id"
     )
 
     def get_is_following(self, obj):
@@ -185,6 +187,7 @@ class ProfileDetailSerializer(ProfileSerializer):
 
     class Meta(ProfileSerializer.Meta):
         fields = ProfileSerializer.Meta.fields + [
+            "is_following",
             "num_of_followers",
             "num_of_followings",
             "num_of_posts",
