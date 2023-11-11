@@ -116,7 +116,8 @@ class TagSerializer(serializers.ModelSerializer):
 class FilterPostByTagUrlSerializer(TagSerializer):
     tag_url = serializers.HyperlinkedIdentityField(
         read_only=True,
-        view_name="all-tag-posts"
+        view_name="all-tag-posts",
+        lookup_field=
     )
 
     class Meta:

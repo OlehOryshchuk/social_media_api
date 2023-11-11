@@ -1,10 +1,12 @@
 from django.db.models import (
+    F,
     Q,
     Count,
     QuerySet,
 )
 from django.utils import timezone
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
@@ -19,6 +21,7 @@ from .serializers import (
 
     CommentSerializer,
     CommentListSerializer,
+    CommentDetailSerializer,
 
     ProfileSerializer,
     ProfileListSerializer,
@@ -294,3 +297,126 @@ class PostViewSet(
         """Return profiles who disliked post"""
         self._get_post_profiles_who_likes_or_dislikes(request, False)
 
+
+class CommentViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = CommentSerializer
+
+    def get_object(self):
+        """Will return post object where we can later get all comments
+        or if comment_id was passed than return post specific comment"""
+        post_pk = self.kwargs.get("pk")
+        post = get_object_or_404(Post, post_pk)
+        comment_pk = self.kwargs.get("comment_pk")
+
+        if comment_pk:
+            try:
+                return post.comments.get(id=comment_pk)
+            except Comment.DoesNotExist:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        return post
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user.profile)
+
+    def get_queryset(self):
+        """Return Post comments or comment replies"""
+        # if post is returned by get_objects than use comments attribute
+        # if specific comment returned then use attribute reply_to_comment
+        queryset = getattr(self.get_object(), "comments", "reply_to_comment").select_related(
+            "author", "post", "reply_to_comment"
+        ).prefetch_related("likes")
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CommentListSerializer
+
+        if self.action == "retrieve":
+            return CommentDetailSerializer
+
+        return CommentSerializer
+
+    @action(
+        methods=["get"],
+        detail=True,
+    )
+    def list(self, request, pk, *args, **kwargs):
+        """Return comment under post pk or return
+        replies under post comment  """
+        queryset = self.filter_queryset(self.queryset)
+
+        page = self.paginate_queryset(queryset)
+        # Make annotation for already paginated queryset
+        # instead of all objects in queryset
+        # and order comments by number likes/dislikes/replies
+
+        page = page.annotate(
+            num_of_likes=Count(
+                "commentrate_set",
+                filter=F(commentrate_set__like=True)
+            ),
+            num_of_dislikes=Count(
+                "commentrate_set",
+                filter=F(commentrate_set__like=False)
+            ),
+            num_of_replies=Count(
+                "reply_to_comment",
+            ),
+        ).order_by(
+            "-num_of_likes",
+            "num_of_dislikes",
+            "-num_of_replies",
+        )
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def _like_dislike_or_remove(self, request, like_value: bool) -> None:
+        """Like, dislike, or remove both"""
+        comment = self.get_object()
+        current_profile = request.user.profile
+
+        comment_rate, created = CommentRate.objects.get_or_create(
+            post=comment, profile=current_profile, defaults={"like": like_value}
+        )
+
+        if comment_rate:
+            if comment_rate.like == like_value:
+                # Remove our reaction to comment
+                comment_rate.remove()
+
+            else:
+                comment_rate.like = like_value
+
+        comment_rate.save()
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="like"
+    )
+    def like_unlike(self, request, pk):
+        """Like or unlike comment"""
+        self._like_dislike_or_remove(request, True)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="dislike"
+    )
+    def dislike_remove_dislike(self, request, pk):
+        """DisLike comment or remove dislike"""
+        self._like_dislike_or_remove(request, False)
+        return Response(status=status.HTTP_200_OK)
