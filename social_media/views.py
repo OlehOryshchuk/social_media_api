@@ -77,7 +77,13 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.select_related(
         "user"
-    ).prefetch_related("posts", "followings")
+    ).prefetch_related(
+        "posts", "followings"
+    ).annotate(
+        num_of_followers=Count("followers"),
+        num_of_followings=Count("followings"),
+        num_of_posts=Count("posts"),
+    )
 
     def get_queryset(self) -> QuerySet:
         queryset = self.queryset
@@ -217,6 +223,9 @@ class PostViewSet(
         if self.action == "list":
             return PostListSerializer
 
+        if self.action == "profile_posts":
+            return ProfileDetailSerializer
+
         return PostSerializer
 
     def perform_create(self, serializer):
@@ -309,6 +318,20 @@ class PostViewSet(
     def profiles_disliked(self, request, pk):
         """Return profiles who disliked post"""
         self._get_post_profiles_who_likes_or_dislikes(request, False)
+
+    @action(
+        methods=["get"],
+        detail=True,
+        url_path="profile",
+        url_name="profile-posts"
+    )
+    def profile_posts(self, request, pk):
+        """Return profiles post"""
+        profile = get_object_or_404(Profile, id=pk)
+        data = profile.posts.all()
+        serializer = self.get_serializer(data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewSet(
