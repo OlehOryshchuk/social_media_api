@@ -30,7 +30,7 @@ class Profile(models.Model):
     followings = models.ManyToManyField(
         "self",
         related_name="followers",
-        symmetrical=True,
+        symmetrical=False,
         blank=True
     )
     profile_picture = models.ImageField(
