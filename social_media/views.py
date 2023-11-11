@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from django.db.models import (
     F,
     Q,
@@ -42,6 +44,32 @@ from .models import (
 # TODO create permission that check if current user is owner
 # TODO of that profile
 # TODO create Post method to reteive posts of profile id using action decorator
+
+
+class LikeDislikeObjectMixin(ABC):
+    @abstractmethod
+    def _like_dislike_or_remove(self, request, like_value: bool):
+        pass
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="like"
+    )
+    def like_unlike(self, request, pk):
+        """Like or unlike post"""
+        self._like_dislike_or_remove(request, True)
+        return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["post"],
+        detail=True,
+        url_path="dislike"
+    )
+    def dislike_remove_dislike(self, request, pk):
+        """DisLike post or remove dislike"""
+        self._like_dislike_or_remove(request, False)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -153,6 +181,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(
+    LikeDislikeObjectMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -167,6 +196,7 @@ class PostViewSet(
         "likes", "comments", "tags"
     )
     serializer_class = PostSerializer
+    rate_model = PostRate
 
     def get_queryset(self):
         queryset = self.queryset
@@ -267,26 +297,6 @@ class PostViewSet(
     @action(
         methods=["post"],
         detail=True,
-        url_path="like"
-    )
-    def like_unlike(self, request, pk):
-        """Like or unlike post"""
-        self._like_dislike_or_remove(request, True)
-        return Response(status=status.HTTP_200_OK)
-
-    @action(
-        methods=["post"],
-        detail=True,
-        url_path="dislike"
-    )
-    def dislike_remove_dislike(self, request, pk):
-        """DisLike post or remove dislike"""
-        self._like_dislike_or_remove(request, False)
-        return Response(status=status.HTTP_200_OK)
-
-    @action(
-        methods=["post"],
-        detail=True,
     )
     def profiles_liked(self, request, pk):
         """Return profiles who liked post"""
@@ -302,6 +312,7 @@ class PostViewSet(
 
 
 class CommentViewSet(
+    LikeDislikeObjectMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -403,26 +414,6 @@ class CommentViewSet(
                 comment_rate.like = like_value
 
         comment_rate.save()
-
-    @action(
-        methods=["post"],
-        detail=True,
-        url_path="like"
-    )
-    def like_unlike(self, request, pk):
-        """Like or unlike comment"""
-        self._like_dislike_or_remove(request, True)
-        return Response(status=status.HTTP_200_OK)
-
-    @action(
-        methods=["post"],
-        detail=True,
-        url_path="dislike"
-    )
-    def dislike_remove_dislike(self, request, pk):
-        """DisLike comment or remove dislike"""
-        self._like_dislike_or_remove(request, False)
-        return Response(status=status.HTTP_200_OK)
 
 
 class TagViewSet(
