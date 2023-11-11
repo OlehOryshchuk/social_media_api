@@ -206,11 +206,11 @@ class PostViewSet(
         page = page.annotate(
             num_of_likes=Count(
                 "postrate_set",
-                filter=Q(postrate_set__like=True)
+                filter=F(postrate_set__like=True)
             ),
             num_of_dislikes=Count(
                 "postrate_set",
-                filter=Q(postrate_set__like=False)
+                filter=F(postrate_set__like=False)
             ),
             num_of_comments=Count(
                 "comments__id",
@@ -391,7 +391,7 @@ class CommentViewSet(
         current_profile = request.user.profile
 
         comment_rate, created = CommentRate.objects.get_or_create(
-            post=comment, profile=current_profile, defaults={"like": like_value}
+            comment=comment, profile=current_profile, defaults={"like": like_value}
         )
 
         if comment_rate:
