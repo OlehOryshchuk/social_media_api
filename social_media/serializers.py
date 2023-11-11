@@ -113,11 +113,10 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-class FilterPostByTagUrlSerializer(TagSerializer):
-    tag_url = serializers.HyperlinkedIdentityField(
+class TagListSerializer(TagSerializer):
+    detail_url = serializers.HyperlinkedIdentityField(
         read_only=True,
-        view_name="all-tag-posts",
-        lookup_field=
+        view_name="tag-detail",
     )
 
     class Meta:
@@ -146,8 +145,8 @@ class PostListSerializer(PostSerializer):
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
-    tags = FilterPostByTagUrlSerializer(
-        many=True, read_only=True
+    tags = serializers.HyperlinkedRelatedField(
+        many=True, read_only=True, view_name="tag_detail"
     )
 
     class Meta(PostSerializer.Meta):
