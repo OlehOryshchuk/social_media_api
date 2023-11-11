@@ -16,6 +16,9 @@ from taggit.models import Tag
 
 from .paginations import CustomPagination
 from .serializers import (
+    TagSerializer,
+    TagListSerializer,
+
     PostSerializer,
     PostListSerializer,
 
@@ -420,3 +423,21 @@ class CommentViewSet(
         """DisLike comment or remove dislike"""
         self._like_dislike_or_remove(request, False)
         return Response(status=status.HTTP_200_OK)
+
+
+class TagViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Get list/create tags"""
+    serializer_class = TagSerializer
+    queryset = Tag.objects.prefetch_related(
+        "posts",
+    )
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TagListSerializer
+
+        return TagSerializer
