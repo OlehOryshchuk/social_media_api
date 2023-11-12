@@ -145,19 +145,20 @@ class PostListSerializer(PostSerializer):
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
-    tags = serializers.HyperlinkedRelatedField(
+    tags_url = serializers.HyperlinkedRelatedField(
         many=True, read_only=True, view_name="tag_detail"
     )
 
     class Meta(PostSerializer.Meta):
         fields = PostSerializer.Meta.fields + [
             "profile_url",
+            "tags_url",
             "comments_url",
             "like_url",
             "dislike_url",
             "num_of_likes",
             "num_of_dislikes",
-            "numb_of_comments",
+            "num_of_comments",
         ]
 
 
