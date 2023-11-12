@@ -41,7 +41,7 @@ class Profile(models.Model):
     bio = models.TextField(max_length=1000, blank=True)
 
     def __str__(self) -> str:
-        return self.user
+        return f"{self.user}"
 
 
 class Post(models.Model):
