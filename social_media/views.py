@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from django.db.models import (
-    F,
     Q,
     Count,
     QuerySet,
@@ -13,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from taggit.models import Tag
 
@@ -190,6 +190,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 class PostViewSet(
     LikeDislikeObjectMixin,
+    mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -204,6 +205,7 @@ class PostViewSet(
         "likes", "comments", "tags"
     )
     serializer_class = PostSerializer
+    pagination_class = CustomPagination
     rate_model = PostRate
 
     def get_queryset(self):
@@ -216,7 +218,27 @@ class PostViewSet(
         if following_posts:
             queryset = current_profile.followings.all()
 
-        return queryset
+        days_ago = settings.POST_CREATED_AT_DAYS_AGO
+        days_ago = timezone.now() - timezone.timedelta(days=days_ago)
+
+        return queryset.annotate(
+            num_of_likes=Count(
+                "postrate",
+                filter=Q(postrate__like=True)
+            ),
+            num_of_dislikes=Count(
+                "postrate",
+                filter=Q(postrate__like=False)
+            ),
+            num_of_comments=Count(
+                "comments__id",
+            ),
+        ).order_by(
+            "-num_of_likes",
+            "num_of_dislikes",
+        ).filter(
+            created_at__gt=days_ago
+        )
 
     def get_serializer_class(self):
         if self.action in ("profiles_liked", "profiles_disliked"):
@@ -232,43 +254,6 @@ class PostViewSet(
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user.profile)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.queryset)
-
-        page = self.paginate_queryset(queryset)
-        # Make annotation for already paginated queryset
-        # instead of all objects in queryset
-        # and order posts by number of likes and dislikes
-        # and filter posts that are created within POST_CREATED_AT_DAYS_AGO
-        days_ago = settings.POST_CREATED_AT_DAYS_AGO
-        days_ago = timezone.now() - timezone.timedelta(days=days_ago)
-
-        page = page.annotate(
-            num_of_likes=Count(
-                "postrate_set",
-                filter=F(postrate_set__like=True)
-            ),
-            num_of_dislikes=Count(
-                "postrate_set",
-                filter=F(postrate_set__like=False)
-            ),
-            num_of_comments=Count(
-                "comments__id",
-            ),
-        ).order_by(
-            "-num_of_likes",
-            "num_of_dislikes",
-        ).filter(
-            created_at__gt=days_ago
-        )
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
     def _like_dislike_or_remove(self, request, like_value: bool) -> None:
         """Like, dislike, or remove both"""
@@ -338,6 +323,7 @@ class PostViewSet(
 
 class CommentViewSet(
     LikeDislikeObjectMixin,
+    mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -371,39 +357,14 @@ class CommentViewSet(
             "author", "post", "reply_to_comment"
         ).prefetch_related("likes")
 
-        return queryset
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return CommentListSerializer
-
-        if self.action == "retrieve":
-            return CommentDetailSerializer
-
-        return CommentSerializer
-
-    @action(
-        methods=["get"],
-        detail=True,
-    )
-    def list(self, request, pk, *args, **kwargs):
-        """Return comment under post pk or return
-        replies under post comment  """
-        queryset = self.filter_queryset(self.queryset)
-
-        page = self.paginate_queryset(queryset)
-        # Make annotation for already paginated queryset
-        # instead of all objects in queryset
-        # and order comments by number likes/dislikes/replies
-
-        page = page.annotate(
+        return queryset.annotate(
             num_of_likes=Count(
                 "commentrate_set",
-                filter=F(commentrate_set__like=True)
+                filter=Q(commentrate_set__like=True)
             ),
             num_of_dislikes=Count(
                 "commentrate_set",
-                filter=F(commentrate_set__like=False)
+                filter=Q(commentrate_set__like=False)
             ),
             num_of_replies=Count(
                 "reply_to_comment",
@@ -414,12 +375,14 @@ class CommentViewSet(
             "-num_of_replies",
         )
 
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CommentListSerializer
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        if self.action == "retrieve":
+            return CommentDetailSerializer
+
+        return CommentSerializer
 
     def _like_dislike_or_remove(self, request, like_value: bool) -> None:
         """Like, dislike, or remove both"""
