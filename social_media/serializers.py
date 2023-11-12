@@ -127,26 +127,31 @@ class TagListSerializer(TagSerializer):
 class PostListSerializer(PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
+    profile_url = serializers.HyperlinkedRelatedField(
+        view_name="social_media:profile-detail",
+        lookup_field="author__id",
+        read_only=True,
+    )
     comments_url = serializers.HyperlinkedIdentityField(
         read_only=True,
-        view_name="post-comments",
+        view_name="social_media:post-comments",
         lookup_field="id"
     )
     like_url = serializers.HyperlinkedIdentityField(
         read_only=True,
-        view_name="post-like",
+        view_name="social_media:post-like",
         lookup_field="id"
     )
     dislike_url = serializers.HyperlinkedIdentityField(
         read_only=True,
-        view_name="post-like",
+        view_name="social_media:post-like",
         lookup_field="id"
     )
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
     tags_url = serializers.HyperlinkedRelatedField(
-        many=True, read_only=True, view_name="tag_detail"
+        many=True, read_only=True, view_name="social_media:tag_detail"
     )
 
     class Meta(PostSerializer.Meta):
