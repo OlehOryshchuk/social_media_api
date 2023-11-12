@@ -1,3 +1,5 @@
+from rest_framework.reverse import reverse
+
 from rest_framework import serializers
 from taggit.models import Tag
 
@@ -25,13 +27,12 @@ class ProfileListSerializer(ProfileSerializer):
         read_only=True, source="user.username"
     )
     profile_url = serializers.HyperlinkedIdentityField(
-        view_name="profile-detail",
-        lookup_field="id",
-        read_only=True
+        read_only=True,
+        view_name="social_media:profile-detail",
     )
 
     class Meta:
-        model = Profile,
+        model = Profile
         fields = [
             "id",
             "username",
