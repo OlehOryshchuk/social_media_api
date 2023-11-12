@@ -113,10 +113,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(
-        methods=["post"],
+        methods=["get"],
         detail=True,
+        url_name="follow_unfollow"
     )
     def follow_or_unfollow(self, request, pk=None):
+        """Follow or unfollow profile by current profile"""
         profile = self.get_object()
         current_profile: Profile = request.user.profile
 
@@ -162,7 +164,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         detail=True,
     )
     def upload_profile_picture(self, request, pk=None):
-        """Upload profile image of current profile"""
+        """Upload profile image on current profile"""
         profile = self.get_object()
         serializer = self.get_serializer(profile, data=request.data)
 
