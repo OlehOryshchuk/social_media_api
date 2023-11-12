@@ -51,7 +51,7 @@ class ProfileImageUpload(ProfileSerializer):
 class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Post,
+        model = Post
         fields = [
             "id",
             "author",
