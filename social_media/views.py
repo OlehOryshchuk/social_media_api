@@ -181,7 +181,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         """Return Profile posts"""
         profile = self.get_object()
         data = profile.posts.all()
-        serializer = self.get_serializer(data)
+        serializer = self.get_serializer(data, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
