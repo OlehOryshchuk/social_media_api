@@ -141,8 +141,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = self.get_object()
         following = profile.followings.all()
 
-        serializer = self.get_serializer(data=following, many=True)
-
+        serializer = self.get_serializer(following, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
@@ -154,7 +153,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = self.get_object()
         followers = profile.followers.all()
 
-        serializer = self.get_serializer(data=followers, many=True)
+        serializer = self.get_serializer(followers, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -175,7 +174,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
     @action(
         methods=["get"],
         detail=True,
-        url_path="posts"
+        url_path="posts",
+        url_name="posts"
     )
     def profile_posts(self, request, pk):
         """Return Profile posts"""
