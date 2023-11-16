@@ -276,8 +276,11 @@ class CommentViewSet(
         return queryset
 
     def get_comments(self):
-        """Return Post comments"""
-        queryset = Comment.objects.filter(post=self.get_post())
+        """Return Post comments not replies"""
+        queryset = Comment.objects.filter(
+            post=self.get_post(),
+            reply_to_comment__isnull=True
+        )
         return self.annotate_queryset(queryset)
 
     def get_serializer_class(self):
