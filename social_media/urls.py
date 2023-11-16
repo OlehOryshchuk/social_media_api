@@ -27,7 +27,7 @@ urlpatterns = [
     path(
         "post/<int:post_pk>/comments/<int:pk>/",
         CommentViewSet.as_view(
-            {"get": "detail", "post": "create"}
+            {"get": "retrieve", "post": "create"}
         ),
         name="comment-replies",
     ),
