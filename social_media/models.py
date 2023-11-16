@@ -23,20 +23,13 @@ def custom_image_file_path(instance, filename):
 
 class Profile(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="profile"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
     )
     followings = models.ManyToManyField(
-        "self",
-        related_name="followers",
-        symmetrical=False,
-        blank=True
+        "self", related_name="followers", symmetrical=False, blank=True
     )
     profile_picture = models.ImageField(
-        null=True,
-        blank=True,
-        upload_to=custom_image_file_path
+        null=True, blank=True, upload_to=custom_image_file_path
     )
     bio = models.TextField(max_length=1000, blank=True)
 
@@ -52,7 +45,8 @@ class Post(models.Model):
     )
     image = models.ImageField(
         upload_to=custom_image_file_path,
-        blank=True
+        blank=True,
+        null=True
     )
     content = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -68,17 +62,12 @@ class Post(models.Model):
         related_name="comments",
         through="Comment",
         through_fields=("post", "author"),
-        blank=True
-    )
-    tags = TaggableManager(
         blank=True,
-        related_name="posts"
     )
+    tags = TaggableManager(to="self", blank=True, related_name="posts")
 
     class Meta:
-        indexes = [
-            models.Index(fields=["created_at"])
-        ]
+        indexes = [models.Index(fields=["created_at"])]
 
     def __str__(self) -> str:
         return f"{self.author} - {self.created_at}"
@@ -109,7 +98,7 @@ class Comment(models.Model):
         Profile,
         related_name="liked_comments",
         through="CommentRate",
-        through_fields=("comment", "profile")
+        through_fields=("comment", "profile"),
     )
 
     def __str__(self) -> str:

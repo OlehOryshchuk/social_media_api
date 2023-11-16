@@ -14,11 +14,7 @@ admin.site.unregister(Group)
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     search_fields = ["user__username"]
-    list_display = [
-        "user",
-        "profile_picture",
-        "bio"
-    ]
+    list_display = ["user", "profile_picture", "bio"]
 
 
 @admin.register(Post)
