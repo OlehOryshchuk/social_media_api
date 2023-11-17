@@ -153,10 +153,7 @@ class PostViewSet(
         following_posts: bool = self.request.query_params.get("following_posts", None)
 
         if following_posts:
-            followings_id = current_profile.followings.values_list(
-                "id", flat=True
-            ).order_by("id")
-            queryset = Post.objects.filter(author__id__in=followings_id)
+            queryset = Post.objects.filter(author__followers=current_profile)
 
         queryset = count_likes_dislikes(queryset, "postrate")
 
