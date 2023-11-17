@@ -19,6 +19,7 @@ from .serializers import (
     TagListSerializer,
     PostSerializer,
     PostListSerializer,
+    PostProfilesLikedSerializer,
     CommentSerializer,
     CommentListSerializer,
     ProfileSerializer,
@@ -49,9 +50,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     # TODO add filter by username
     serializer_class = ProfileSerializer
     queryset = (
-        Profile.objects.select_related("user")
-        .prefetch_related("posts", "followings")
-        .annotate(
+        Profile.objects.annotate(
             num_of_followers=Count("followers"),
             num_of_followings=Count("followings"),
             num_of_posts=Count("posts"),
@@ -151,27 +150,32 @@ class PostViewSet(
     def get_queryset(self):
         queryset = self.queryset
         current_profile = self.request.user.profile
-        # If following_posts then return current user followings posts
         following_posts: bool = self.request.query_params.get("following_posts", None)
 
         if following_posts:
             queryset = current_profile.followings.all()
 
-        return count_likes_dislikes(
-                queryset, "postrate"
-        ).annotate(
-            num_of_comments=Count("comments")
-        ).order_by("-created_at", "num_of_comments")
+        queryset = count_likes_dislikes(queryset, "postrate")
+
+        # Count the number of comments for each post
+        queryset = queryset.annotate(num_of_comments=Count("comments", distinct=True))
+
+        queryset = queryset.order_by("-created_at", "num_of_comments")
+
+        return queryset
 
     def get_serializer_class(self):
-        if self.action in (
-                "profiles_liked",
-                "profiles_disliked",
+        if self.action in [
                 "profile_posts",
                 "list",
-
-        ):
+        ]:
             return PostListSerializer
+
+        if self.action in [
+            "profiles_liked",
+            "profiles_disliked"
+        ]:
+            return PostProfilesLikedSerializer
 
         return PostSerializer
 
@@ -198,28 +202,20 @@ class PostViewSet(
     def _get_post_profiles_who_likes_or_dislikes(self, request, like_value: bool):
         """Return profiles that liked or disliked post"""
         post = self.get_object()
-
-        try:
-            data = PostRate.objects.get(post=post).filter(like=like_value)
-        except PostRate.DoesNotExist:
-            return Response(
-                {"post_error": "Post Does Not Exist"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        serializer = self.get_serializer(data)
+        data = post.postrate_set.filter(like=like_value)
+        serializer = self.get_serializer(data, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=["get"], detail=True,)
     def profiles_liked(self, request, pk):
         """Return profiles who liked post"""
-        self._get_post_profiles_who_likes_or_dislikes(request, True)
+        return self._get_post_profiles_who_likes_or_dislikes(request, True)
 
     @action(methods=["get"], detail=True, url_name="profile-disliked")
     def profiles_disliked(self, request, pk):
         """Return profiles who disliked post"""
-        self._get_post_profiles_who_likes_or_dislikes(request, False)
+        return self._get_post_profiles_who_likes_or_dislikes(request, False)
 
     @action(methods=["get"], detail=True, url_path="profile", url_name="profile")
     def profile_posts(self, request, pk):
