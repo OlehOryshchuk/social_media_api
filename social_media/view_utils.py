@@ -18,8 +18,16 @@ def count_likes_dislikes(queryset: QuerySet, rate_model: str) -> QuerySet:
     rate_model = rate_model.lower()
 
     queryset = queryset.annotate(
-        num_of_likes=Count(rate_model, filter=Q(**{f"{rate_model}__like": True})),
-        num_of_dislikes=Count(rate_model, filter=Q(**{f"{rate_model}__like": False}))
+        num_of_likes=Count(
+            rate_model,
+            filter=Q(**{f"{rate_model}__like": True}),
+            distinct=True
+        ),
+        num_of_dislikes=Count(
+            rate_model,
+            filter=Q(**{f"{rate_model}__like": False}),
+            distinct=True
+        )
     ).order_by(
         "-num_of_likes",
         "num_of_dislikes",
