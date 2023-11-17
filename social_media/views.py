@@ -1,7 +1,4 @@
-from abc import ABC, abstractmethod
-
 from django.db.models import (
-    Q,
     Count,
     QuerySet,
 )
@@ -19,13 +16,11 @@ from taggit.serializers import (
 
 from .paginations import CustomPagination
 from .serializers import (
-    TagSerializer,
     TagListSerializer,
     PostSerializer,
     PostListSerializer,
     CommentSerializer,
     CommentListSerializer,
-    CommentDetailSerializer,
     ProfileSerializer,
     ProfileListSerializer,
     ProfileDetailSerializer,
