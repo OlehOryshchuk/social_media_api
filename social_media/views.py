@@ -153,7 +153,10 @@ class PostViewSet(
         following_posts: bool = self.request.query_params.get("following_posts", None)
 
         if following_posts:
-            queryset = current_profile.followings.all()
+            followings_id = current_profile.followings.values_list(
+                "id", flat=True
+            ).order_by("id")
+            queryset = Post.objects.filter(author__id__in=followings_id)
 
         queryset = count_likes_dislikes(queryset, "postrate")
 
@@ -224,7 +227,7 @@ class PostViewSet(
         data = Post.objects.filter(author=profile)
 
         annotate = count_likes_dislikes(data, "postrate").annotate(
-            num_of_comments=Count("comments"),
+            num_of_comments=Count("comments", distinct=True),
         ).order_by("-num_of_comments")
 
         serializer = self.get_serializer(annotate, many=True)
