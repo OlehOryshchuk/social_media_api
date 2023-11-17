@@ -243,7 +243,6 @@ class PostViewSet(
 
 class CommentViewSet(
     LikeDislikeObjectMixin,
-    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -284,11 +283,8 @@ class CommentViewSet(
         return self.annotate_queryset(queryset)
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "retrieve"]:
             return CommentListSerializer
-
-        if self.action == "retrieve":
-            return CommentDetailSerializer
 
         return CommentSerializer
 
@@ -314,6 +310,14 @@ class CommentViewSet(
         """GET comments under post"""
         comments = self.get_comments()
         serializer = self.get_serializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, post_pk: int, pk: int):
+        """GET comment replies"""
+        replies = self.get_comment().replies.all()
+        annotate = count_likes_dislikes(replies, "commentrate")
+        serializer = self.get_serializer(annotate, many=True)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

@@ -107,14 +107,6 @@ class CommentListSerializer(CommentSerializer):
         )
 
 
-class CommentDetailSerializer(CommentSerializer):
-    replies = CommentListSerializer(read_only=True, many=True)
-
-    class Meta:
-        model = Comment
-        fields = ["replies"]
-
-
 class TagListSerializer(serializers.ModelSerializer):
     tag_url = serializers.HyperlinkedIdentityField(
         read_only=True,
