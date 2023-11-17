@@ -65,12 +65,17 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ["id", "content", "reply_to_comment", "created_at"]
 
 
-class CommentListSerializer(CommentSerializer):
+class LikeDislikeCountFieldSerializer(serializers.Serializer):
+    """CLass which holds common fields"""
+    num_of_likes = serializers.IntegerField(read_only=True)
+    num_of_dislikes = serializers.IntegerField(read_only=True)
+
+
+class CommentListSerializer(LikeDislikeCountFieldSerializer, CommentSerializer):
     """See posts comments, and every comment have number
     of likes/dislikes/replies and see who is the author of
     comment"""
-    num_of_likes = serializers.IntegerField(read_only=True)
-    num_of_dislikes = serializers.IntegerField(read_only=True)
+
     num_of_replies = serializers.IntegerField(read_only=True)
     like_url = serializers.HyperlinkedIdentityField(
         read_only=True,
@@ -118,7 +123,7 @@ class TagListSerializer(serializers.ModelSerializer):
         fields = ["name", "tag_url"]
 
 
-class PostListSerializer(PostSerializer):
+class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
 
@@ -136,8 +141,6 @@ class PostListSerializer(PostSerializer):
         read_only=True,
         view_name="social_media:post-dislike",
     )
-    num_of_likes = serializers.IntegerField(read_only=True)
-    num_of_dislikes = serializers.IntegerField(read_only=True)
     num_of_comments = serializers.IntegerField(read_only=True)
     tags = TagListSerializer(many=True, read_only=True)
 
