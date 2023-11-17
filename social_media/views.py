@@ -51,18 +51,11 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     queryset = (
         Profile.objects.annotate(
-            num_of_followers=Count("followers"),
-            num_of_followings=Count("followings"),
-            num_of_posts=Count("posts"),
+            num_of_followers=Count("followers", distinct=True),
+            num_of_followings=Count("followings", distinct=True),
+            num_of_posts=Count("posts", distinct=True),
         )
     )
-
-    def get_queryset(self) -> QuerySet:
-        queryset = self.queryset
-        if self.action == "retrieve":
-            queryset = queryset.prefetch_related("posts__comments")
-
-        return queryset
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -101,7 +94,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def followings(self, request, pk=None):
         """Return list of profiles current profile is following"""
         profile = self.get_object()
-        following = profile.followings.all()
+        following = profile.followings.all().select_related("user")
 
         serializer = self.get_serializer(following, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -110,7 +103,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def followers(self, request, pk=None):
         """Return list of profiles that are following current profile"""
         profile = self.get_object()
-        followers = profile.followers.all()
+        followers = profile.followers.select_related("user")
 
         serializer = self.get_serializer(followers, many=True)
 
