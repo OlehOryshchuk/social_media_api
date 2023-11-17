@@ -37,6 +37,14 @@ class ProfileListSerializer(ProfileSerializer):
         ]
 
 
+class ProfilesLikedDislikedPostSerializer(serializers.ModelSerializer):
+    profiles = ProfileListSerializer(read_only=True, source="profile")
+
+    class Meta:
+        model = PostRate
+        fields = ["profiles"]
+
+
 class ProfileImageUpload(ProfileSerializer):
     """Upload profile picture"""
     class Meta:

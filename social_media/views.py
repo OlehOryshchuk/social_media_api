@@ -19,7 +19,7 @@ from .serializers import (
     TagListSerializer,
     PostSerializer,
     PostListSerializer,
-    PostProfilesLikedSerializer,
+    ProfilesLikedDislikedPostSerializer,
     CommentSerializer,
     CommentListSerializer,
     ProfileSerializer,
@@ -175,7 +175,7 @@ class PostViewSet(
             "profiles_liked",
             "profiles_disliked"
         ]:
-            return PostProfilesLikedSerializer
+            return ProfilesLikedDislikedPostSerializer
 
         return PostSerializer
 
