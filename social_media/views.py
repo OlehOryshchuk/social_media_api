@@ -49,13 +49,19 @@ from .view_utils import (
 class ProfileViewSet(viewsets.ModelViewSet):
     # TODO add filter by username
     serializer_class = ProfileSerializer
-    queryset = (
-        Profile.objects.annotate(
-            num_of_followers=Count("followers", distinct=True),
-            num_of_followings=Count("followings", distinct=True),
-            num_of_posts=Count("posts", distinct=True),
-        )
-    )
+    queryset = Profile.objects.select_related("user")
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if self.action == "retrieve":
+            queryset = queryset.annotate(
+                num_of_followers=Count("followers", distinct=True),
+                num_of_followings=Count("followings", distinct=True),
+                num_of_posts=Count("posts", distinct=True),
+            )
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -94,7 +100,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def followings(self, request, pk=None):
         """Return list of profiles current profile is following"""
         profile = self.get_object()
-        following = profile.followings.all().select_related("user")
+        following = profile.followings.select_related("user")
 
         serializer = self.get_serializer(following, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -135,7 +141,7 @@ class PostViewSet(
     who disliked or liked specific profile"""
 
     queryset = Post.objects.select_related("author").prefetch_related(
-        "likes", "comments", "tags"
+        "tags"
     )
     serializer_class = PostSerializer
     pagination_class = CustomPagination
