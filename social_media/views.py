@@ -19,7 +19,6 @@ from .serializers import (
     TagListSerializer,
     PostSerializer,
     PostListSerializer,
-    ProfilesLikedDislikedPostSerializer,
     CommentSerializer,
     CommentListSerializer,
     ProfileSerializer,
@@ -174,7 +173,7 @@ class PostViewSet(
             "profiles_liked",
             "profiles_disliked"
         ]:
-            return ProfilesLikedDislikedPostSerializer
+            return ProfileListSerializer
 
         return PostSerializer
 
@@ -201,8 +200,13 @@ class PostViewSet(
     def _get_post_profiles_who_likes_or_dislikes(self, request, like_value: bool):
         """Return profiles that liked or disliked post"""
         post = self.get_object()
-        data = post.postrate_set.filter(like=like_value)
-        serializer = self.get_serializer(data, many=True)
+        profile_ids = post.postrate_set.filter(like=like_value).values_list("profile")
+        data = Profile.objects.filter(id__in=profile_ids)
+
+        serializer = self.get_serializer(
+            data,
+            many=True,
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
