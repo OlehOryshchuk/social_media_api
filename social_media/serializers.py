@@ -37,14 +37,6 @@ class ProfileListSerializer(ProfileSerializer):
         ]
 
 
-class ProfilesLikedDislikedPostSerializer(serializers.ModelSerializer):
-    profiles = ProfileListSerializer(read_only=True, source="profile")
-
-    class Meta:
-        model = PostRate
-        fields = ["profiles"]
-
-
 class ProfileImageUpload(ProfileSerializer):
     """Upload profile picture"""
     class Meta:
@@ -52,19 +44,15 @@ class ProfileImageUpload(ProfileSerializer):
         fields = ["id", "profile_picture"]
 
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ["id", "name"]
-
-
 class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
-    tags = TagListSerializerField()
+    tags = TagListSerializerField(required=False)
 
     class Meta:
         model = Post
         fields = ["id", "content", "image", "tags", "created_at"]
-        extra_kwargs = {"image": {"required": False}}
+        extra_kwargs = {
+            "image": {"required": False},
+        }
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -173,7 +161,7 @@ class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
 
 class ProfileDetailSerializer(ProfileSerializer):
     """Detail information of current user profile"""
-
+    username = serializers.CharField(read_only=True, source="user.username")
     num_of_followers = serializers.IntegerField(read_only=True)
     num_of_followings = serializers.IntegerField(read_only=True)
     num_of_posts = serializers.IntegerField(read_only=True)
@@ -190,6 +178,7 @@ class ProfileDetailSerializer(ProfileSerializer):
 
     class Meta(ProfileSerializer.Meta):
         fields = ProfileSerializer.Meta.fields + [
+            "username",
             "is_following",
             "num_of_followers",
             "num_of_followings",
