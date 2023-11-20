@@ -30,7 +30,6 @@ class ProfileListSerializer(ProfileSerializer):
     class Meta:
         model = Profile
         fields = [
-            "id",
             "username",
             "profile_picture",
             "profile_url",
@@ -133,8 +132,7 @@ class TagListSerializer(serializers.ModelSerializer):
 class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
-
-    profile_url = serializers.SerializerMethodField()
+    author = ProfileListSerializer(read_only=True)
     comments_url = serializers.HyperlinkedIdentityField(
         read_only=True,
         view_name="social_media:post-comments",
@@ -153,7 +151,7 @@ class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
 
     class Meta(PostSerializer.Meta):
         fields = PostSerializer.Meta.fields + [
-            "profile_url",
+            "author",
             "tags",
             "comments_url",
             "like_url",
@@ -163,11 +161,16 @@ class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
             "num_of_comments",
         ]
 
-    def get_profile_url(self, obj: Post):
-        """Return profile detail URI(Uniform Resource Identifier)"""
-        return self.context["request"].build_absolute_uri(
-            reverse("social_media:profile-detail", args=[obj.author.id])
-        )
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """Method for improving Comment queries"""
+        # select_related for 'to-one' relationships
+        queryset = queryset.select_related("author__user")
+
+        # prefetch_related for 'to-many' relationships
+        queryset = queryset.prefetch_related("tags")
+
+        return queryset
 
 
 class ProfileDetailSerializer(ProfileSerializer):

@@ -139,9 +139,7 @@ class PostViewSet(
     like post/dislike or remove reaction from post & see all profiles
     who disliked or liked specific profile"""
 
-    queryset = Post.objects.select_related("author").prefetch_related(
-        "tags"
-    )
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = CustomPagination
 
@@ -152,6 +150,9 @@ class PostViewSet(
 
         if following_posts:
             queryset = Post.objects.filter(author__followers=current_profile)
+
+        if self.action == "list":
+            queryset = self.get_serializer().setup_eager_loading(queryset)
 
         queryset = count_likes_dislikes(queryset, "postrate")
 
@@ -201,10 +202,11 @@ class PostViewSet(
         """Return profiles that liked or disliked post"""
         post = self.get_object()
         profile_ids = post.postrate_set.filter(like=like_value).values_list("profile")
-        data = Profile.objects.select_related("user").filter(id__in=profile_ids)
+        data = Profile.objects.filter(id__in=profile_ids)
 
+        improve_queries = self.get_serializer().setup_eager_loading(data)
         serializer = self.get_serializer(
-            data,
+            improve_queries,
             many=True,
         )
 
@@ -224,12 +226,12 @@ class PostViewSet(
     def profile_posts(self, request, pk):
         """Accept profile pk and return profile posts"""
         profile = get_object_or_404(Profile, id=pk)
-        data = Post.objects.select_related(
-            "author"
-        ).prefetch_related("tags").filter(author=profile)
+        data = Post.objects.filter(author=profile)
 
-        annotate = count_likes_dislikes(data, "postrate").annotate(
-            num_of_comments=Count("comments", distinct=True),
+        improve_queries = self.get_serializer().setup_eager_loading(data)
+
+        annotate = count_likes_dislikes(improve_queries, "postrate").annotate(
+            num_of_comments=Count("comments", distinct=True)
         ).order_by("-num_of_comments")
 
         serializer = self.get_serializer(annotate, many=True)
