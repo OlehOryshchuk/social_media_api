@@ -201,7 +201,7 @@ class PostViewSet(
         """Return profiles that liked or disliked post"""
         post = self.get_object()
         profile_ids = post.postrate_set.filter(like=like_value).values_list("profile")
-        data = Profile.objects.filter(id__in=profile_ids)
+        data = Profile.objects.select_related("user").filter(id__in=profile_ids)
 
         serializer = self.get_serializer(
             data,
