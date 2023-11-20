@@ -353,6 +353,10 @@ class TagViewSet(
             num_of_comments=Count("comments")
         ).order_by("num_of_comments")
 
-        serializer = self.get_serializer(annotate, many=True)
+        improve_queries = self.get_serializer().setup_eager_loading(annotate)
+        serializer = self.get_serializer(
+            improve_queries,
+            many=True,
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
