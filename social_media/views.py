@@ -272,7 +272,7 @@ class CommentViewSet(
 
     def get_comments(self):
         """Return Post comments not replies"""
-        queryset = Comment.objects.filter(
+        queryset = Comment.objects.all().filter(
             post=self.get_post(),
             reply_to_comment__isnull=True
         )
@@ -305,13 +305,18 @@ class CommentViewSet(
     def list(self, request, post_pk: int):
         """GET comments under post"""
         comments = self.get_comments()
-        serializer = self.get_serializer(comments, many=True)
+        improve_queries = self.get_serializer().setup_eager_loading(comments)
+
+        serializer = self.get_serializer(improve_queries, many=True)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, post_pk: int, pk: int):
         """GET comment replies"""
-        replies = self.get_comment().replies.all()
-        annotate = count_likes_dislikes(replies, "commentrate")
+        replies = self.get_comment().replies
+        improve_queries = self.get_serializer().setup_eager_loading(replies)
+        annotate = count_likes_dislikes(improve_queries, "commentrate")
+
         serializer = self.get_serializer(annotate, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

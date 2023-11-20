@@ -107,6 +107,17 @@ class CommentListSerializer(LikeDislikeCountFieldSerializer, CommentSerializer):
             reverse("social_media:comment-replies", args=[obj.post.id, obj.pk])
         )
 
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """Method for improving Comment queries"""
+        # select_related for 'to-one' relationships
+        queryset = queryset.select_related("author__user", "post")
+
+        # prefetch_related for 'to-many' relationships
+        queryset = queryset.prefetch_related("likes")
+
+        return queryset
+
 
 class TagListSerializer(serializers.ModelSerializer):
     tag_url = serializers.HyperlinkedIdentityField(

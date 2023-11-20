@@ -79,7 +79,7 @@ class PostRate(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f"{self.profile} {self.post}"
+        return f"{self.profile}"
 
 
 class Comment(models.Model):
@@ -102,7 +102,7 @@ class Comment(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.author} {self.post}"
+        return f"Comment id {self.id}"
 
 
 class CommentRate(models.Model):
@@ -111,4 +111,4 @@ class CommentRate(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return f"{self.profile} {self.comment}"
+        return f"{self.comment}"
