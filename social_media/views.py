@@ -224,7 +224,9 @@ class PostViewSet(
     def profile_posts(self, request, pk):
         """Accept profile pk and return profile posts"""
         profile = get_object_or_404(Profile, id=pk)
-        data = Post.objects.filter(author=profile)
+        data = Post.objects.select_related(
+            "author"
+        ).prefetch_related("tags").filter(author=profile)
 
         annotate = count_likes_dislikes(data, "postrate").annotate(
             num_of_comments=Count("comments", distinct=True),
