@@ -1,13 +1,16 @@
-from rest_framework.reverse import reverse
+from django.db import IntegrityError
 
+from rest_framework.reverse import reverse
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from taggit.serializers import (
     TaggitSerializer,
     TagListSerializerField
 )
 from taggit.models import Tag
 
-from .models import Profile, Post, PostRate, Comment, CommentRate
+from .models import Profile, Post, Comment
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -18,6 +21,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             "profile_picture",
             "bio",
         ]
+
+    def create(self, validated_data):
+        try:
+            return super().create(validated_data)
+        except IntegrityError:
+            raise ValidationError({
+                "error": "A profile for this user already exist"
+            }, code="unique_constrain_failed")
 
 
 class ProfileListSerializer(ProfileSerializer):
