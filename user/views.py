@@ -3,8 +3,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from knox.auth import TokenAuthentication
-
 from .serializers import UserSerializer
 
 
@@ -19,7 +17,6 @@ class ManagerUserView(generics.RetrieveUpdateAPIView):
     user can update his credentials"""
 
     serializer_class = UserSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_object(self) -> get_user_model:

@@ -22,5 +22,8 @@ urlpatterns = [
     path("api/user/", include("user.urls", namespace="user")),
     path("api/social_media/", include("social_media.urls", namespace="social_media")),
 
+    path("auth/", include("djoser.urls")),
+    path("auth/", include("djoser.urls.authtoken")),
+
     path("__debug__/", include("debug_toolbar.urls")),
 ]

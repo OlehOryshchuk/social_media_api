@@ -45,8 +45,9 @@ INSTALLED_APPS = [
 
     "debug_toolbar",
     "rest_framework",
+    "rest_framework.authtoken",
     "taggit",
-    "knox",
+    "djoser",
 
     "user",
     "social_media",
@@ -138,14 +139,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user.User"
 
-# Django settings
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES':'knox.auth.TokenAuthentication',),
-# }
 
 # Set tags field in Post model to be CASE-INSENSITIVE
 TAGGIT_CASE_INSENSITIVE = True
 
 REST_FRAMEWORK = {
-    'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
+    "DATETIME_FORMAT": "%Y-%m-%d %H:%M:%S",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+    ),
 }
