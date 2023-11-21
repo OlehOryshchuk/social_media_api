@@ -149,3 +149,14 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ),
 }
+
+# to see what those settings do see in
+# https://djoser.readthedocs.io/en/latest/settings.html
+
+DJOSER = {
+    # "SERIALIZERS":
+    "USER_CREATE_PASSWORD_RETYPE": True,
+    "SET_PASSWORD_RETYPE": True,
+    "PASSWORD_RESET_CONFIRM_RETYPE": True,
+
+}
