@@ -159,4 +159,7 @@ DJOSER = {
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
 
+    "SERIALIZERS": {
+        "current_user": "user.serializers.UserSerializer",
+    }
 }

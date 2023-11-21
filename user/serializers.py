@@ -1,23 +1,21 @@
-from rest_framework.serializers import ModelSerializer
 from django.contrib.auth import get_user_model
 
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 
-class UserSerializer(ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = ["id", "email", "username", "password", "is_staff"]
-        read_only_fields = ["is_staff"]
-        extra_kwargs = {"password": {"write_only": True}}
+
+class UserSerializer(DjoserUserSerializer):
+    class Meta(DjoserUserSerializer.Meta):
+        fields = ["id", "email", "username"]
+        read_only_fields = None
 
     def create(self, validated_data: dict):
         """Create new user with encrypted password"""
         return get_user_model().objects.create_user(**validated_data)
 
     def update(self, instance, validated_data):
-        """Update user with encypted password"""
+        """Update user with encrypted password"""
         password = validated_data.pop("password", None)
-        user = super().update(**validated_data)
-
+        user = super().update(instance, validated_data)
         if password:
             user.set_password(password)
 
