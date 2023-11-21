@@ -1,23 +1,10 @@
-from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework import status
 
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-
-from .serializers import UserSerializer
+from djoser.views import UserViewSet as DjoserUserViewSet
 
 
-class CreateUserView(generics.CreateAPIView):
-    """Create and save user in Database User table"""
-
-    serializer_class = UserSerializer
-
-
-class ManagerUserView(generics.RetrieveUpdateAPIView):
-    """Autentication is required. Return current user and
-    user can update his credentials"""
-
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self) -> get_user_model:
-        return self.request.user
+class UserViewSet(DjoserUserViewSet):
+    """Unable list endpoint from DjoserUserViewSet"""
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_404_NOT_FOUND)
