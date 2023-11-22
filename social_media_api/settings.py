@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -69,7 +69,7 @@ ROOT_URLCONF = "social_media_api.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -158,8 +158,23 @@ DJOSER = {
     "USER_CREATE_PASSWORD_RETYPE": True,
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
+    "PASSWORD_RESET_CONFIRM_URL": "api/user/password-reset-confirm/<uid64>/<token>/",
 
     "SERIALIZERS": {
         "current_user": "user.serializers.UserSerializer",
+    },
+
+    "EMAIL": {
+        "password_reset": "user.views.PasswordResetEmail"
     }
 }
+
+# Email configurations
+
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = 'bb6b2239e4a7a7'
+EMAIL_HOST_PASSWORD = 'f0df6386f6de08'
+EMAIL_PORT = '2525'
+EMAIL_USE_SSL = False
+EMAIL_USE_TLS = True
+
