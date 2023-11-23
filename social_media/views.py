@@ -10,6 +10,8 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from taggit.models import Tag
 from taggit.serializers import (
     TaggitSerializer
@@ -48,6 +50,7 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
     # TODO add filter by username
     serializer_class = ProfileSerializer
     queryset = Profile.objects.select_related("user")
+    filterset_fields = ["user__username"]
 
     def get_queryset(self):
         queryset = self.queryset
@@ -58,6 +61,9 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
                 num_of_followings=Count("followings", distinct=True),
                 num_of_posts=Count("posts", distinct=True),
             )
+
+        if self.action == "followers":
+            pass
 
         return queryset
 
@@ -108,21 +114,23 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         current_profile.followings.add(profile)
         return Response({"follow": "Follow successful"}, status=status.HTTP_200_OK)
 
-    @action(methods=["get"], detail=True,)
+    @action(methods=["get"], detail=True)
     def followings(self, request, pk=None):
         """Return list of profiles current profile is following"""
         profile = self.get_object()
         following = profile.followings.select_related("user")
+        filter_que = self.filter_queryset(following)
 
-        return self.custom_paginate_queryset(following)
+        return self.custom_paginate_queryset(filter_que)
 
     @action(methods=["get"], detail=True,)
     def followers(self, request, pk=None):
         """Return list of profiles that are following current profile"""
         profile = self.get_object()
         followers = profile.followers.select_related("user")
+        filter_que = self.filter_queryset(followers)
 
-        return self.custom_paginate_queryset(followers)
+        return self.custom_paginate_queryset(filter_que)
 
     @action(methods=["post"], detail=True,)
     def upload_profile_picture(self, request, pk=None):
