@@ -199,6 +199,9 @@ class ProfileDetailSerializer(ProfileSerializer):
     def get_is_following(self, obj):
         """Return True if user is following current profile else False"""
         user = self.context["request"].user
+        if not user.is_authenticated:
+            return False
+
         return user.profile.followings.filter(id=obj.id).exists()
 
     class Meta(ProfileSerializer.Meta):
