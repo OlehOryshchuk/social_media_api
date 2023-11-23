@@ -15,7 +15,6 @@ from taggit.serializers import (
     TaggitSerializer
 )
 
-from .paginations import CustomPagination
 from .serializers import (
     TagListSerializer,
     PostSerializer,
@@ -39,12 +38,13 @@ from .models import (
 from .view_utils import (
     LikeDislikeObjectMixin,
     count_likes_dislikes,
+    PaginateResponseMixin,
 )
 
 from .permissions import IsOwnerOrReadOnly
 
 
-class ProfileViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
     # TODO add filter by username
     serializer_class = ProfileSerializer
     queryset = Profile.objects.select_related("user")
@@ -114,8 +114,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = self.get_object()
         following = profile.followings.select_related("user")
 
-        serializer = self.get_serializer(following, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(following)
 
     @action(methods=["get"], detail=True,)
     def followers(self, request, pk=None):
@@ -123,9 +122,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = self.get_object()
         followers = profile.followers.select_related("user")
 
-        serializer = self.get_serializer(followers, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(followers)
 
     @action(methods=["post"], detail=True,)
     def upload_profile_picture(self, request, pk=None):
@@ -140,6 +137,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(
+    PaginateResponseMixin,
     LikeDislikeObjectMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -154,7 +152,6 @@ class PostViewSet(
 
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    pagination_class = CustomPagination
 
     def get_queryset(self):
         queryset = self.queryset
@@ -229,15 +226,9 @@ class PostViewSet(
         """Return profiles that liked or disliked post"""
         post = self.get_object()
         profile_ids = post.postrate_set.filter(like=like_value).values_list("profile")
-        data = Profile.objects.filter(id__in=profile_ids)
+        data = Profile.objects.filter(id__in=profile_ids).select_related("user")
 
-        improve_queries = self.get_serializer().setup_eager_loading(data)
-        serializer = self.get_serializer(
-            improve_queries,
-            many=True,
-        )
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(data)
 
     @action(methods=["get"], detail=True,)
     def profiles_liked(self, request, pk):
@@ -249,7 +240,12 @@ class PostViewSet(
         """Return profiles who disliked post"""
         return self._get_post_profiles_who_likes_or_dislikes(request, False)
 
-    @action(methods=["get"], detail=True, url_path="profile", url_name="profile")
+    @action(
+        methods=["get"],
+        detail=True,
+        url_path="profile",
+        url_name="profile",
+    )
     def profile_posts(self, request, pk):
         """Accept profile pk and return profile posts"""
         profile = get_object_or_404(Profile, id=pk)
@@ -261,12 +257,11 @@ class PostViewSet(
             num_of_comments=Count("comments", distinct=True)
         ).order_by("-num_of_comments")
 
-        serializer = self.get_serializer(annotate, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(annotate)
 
 
 class CommentViewSet(
+    PaginateResponseMixin,
     LikeDislikeObjectMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
@@ -350,9 +345,7 @@ class CommentViewSet(
         comments = self.get_comments()
         improve_queries = self.get_serializer().setup_eager_loading(comments)
 
-        serializer = self.get_serializer(improve_queries, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(improve_queries)
 
     def retrieve(self, request, post_pk: int, pk: int):
         """GET comment replies"""
@@ -360,12 +353,11 @@ class CommentViewSet(
         improve_queries = self.get_serializer().setup_eager_loading(replies)
         annotate = count_likes_dislikes(improve_queries, "commentrate")
 
-        serializer = self.get_serializer(annotate, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(annotate)
 
 
 class TagViewSet(
+    PaginateResponseMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     viewsets.GenericViewSet,
@@ -404,9 +396,5 @@ class TagViewSet(
         ).order_by("num_of_comments")
 
         improve_queries = self.get_serializer().setup_eager_loading(annotate)
-        serializer = self.get_serializer(
-            improve_queries,
-            many=True,
-        )
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.custom_paginate_queryset(improve_queries)
