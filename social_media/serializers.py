@@ -187,6 +187,12 @@ class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
 class ProfileDetailSerializer(ProfileSerializer):
     """Detail information of current user profile"""
     username = serializers.CharField(read_only=True, source="user.username")
+    followings = serializers.HyperlinkedIdentityField(
+        view_name="social_media:profile-followings"
+    )
+    followers = serializers.HyperlinkedIdentityField(
+        view_name="social_media:profile-followers"
+    )
     num_of_followers = serializers.IntegerField(read_only=True)
     num_of_followings = serializers.IntegerField(read_only=True)
     num_of_posts = serializers.IntegerField(read_only=True)
@@ -196,6 +202,18 @@ class ProfileDetailSerializer(ProfileSerializer):
         read_only=True,
     )
 
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + [
+            "username",
+            "is_following",
+            "followings",
+            "followers",
+            "num_of_followers",
+            "num_of_followings",
+            "num_of_posts",
+            "posts",
+        ]
+
     def get_is_following(self, obj):
         """Return True if user is following current profile else False"""
         user = self.context["request"].user
@@ -203,13 +221,3 @@ class ProfileDetailSerializer(ProfileSerializer):
             return False
 
         return user.profile.followings.filter(id=obj.id).exists()
-
-    class Meta(ProfileSerializer.Meta):
-        fields = ProfileSerializer.Meta.fields + [
-            "username",
-            "is_following",
-            "num_of_followers",
-            "num_of_followings",
-            "num_of_posts",
-            "posts",
-        ]
