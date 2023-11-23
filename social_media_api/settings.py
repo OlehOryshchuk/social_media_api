@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "taggit",
     "djoser",
+    "django_filters",
 
     "user",
     "social_media",
@@ -150,6 +151,9 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": (
         "social_media.paginations.CustomPagination"
+    ),
+    "DEFAULT_FILTER_BACKENDS": (
+        "django_filters.reset_framework.DjangoFilterBackend",
     )
 }
 
