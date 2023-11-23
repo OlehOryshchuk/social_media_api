@@ -8,6 +8,7 @@ from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.permissions import IsAuthenticated
 
 from taggit.models import Tag
 from taggit.serializers import (
@@ -40,9 +41,7 @@ from .view_utils import (
     count_likes_dislikes,
 )
 
-# TODO create permission that check if current user is owner
-# TODO of that profile
-# TODO create Post method to reteive posts of profile id using action decorator
+from .permissions import IsOwnerOrReadOnly
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -73,6 +72,20 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return ProfileImageUpload
 
         return ProfileSerializer
+
+    def get_permissions(self):
+        if self.action in [
+            "follow_or_unfollow",
+            "followings",
+            "followers",
+            "upload_profile_picture"
+        ]:
+            self.permission_classes = [IsAuthenticated]
+
+        elif self.action in ["update", "partial_update", "destroy", "create"]:
+            self.permission_classes = [IsOwnerOrReadOnly]
+
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -145,10 +158,10 @@ class PostViewSet(
 
     def get_queryset(self):
         queryset = self.queryset
-        current_profile = self.request.user.profile
         following_posts: bool = self.request.query_params.get("following_posts", None)
 
         if following_posts:
+            current_profile = self.request.user.profile
             queryset = Post.objects.filter(author__followers=current_profile)
 
         if self.action == "list":
@@ -177,6 +190,20 @@ class PostViewSet(
             return ProfileListSerializer
 
         return PostSerializer
+
+    def get_permissions(self):
+        if self.action in [
+            "profiles_liked",
+            "profiles_disliked",
+            "dislike_remove_dislike",
+            "like_unlike"
+        ]:
+            self.permission_classes = [IsAuthenticated]
+
+        elif self.action in ["update", "partial_update", "destroy", "create"]:
+            self.permission_classes = [IsOwnerOrReadOnly]
+
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user.profile)
@@ -286,6 +313,20 @@ class CommentViewSet(
 
         return CommentSerializer
 
+    def get_permissions(self):
+        if self.action in [
+            "dislike_remove_dislike",
+            "like_unlike",
+            "list",
+            "retrieve",
+        ]:
+            self.permission_classes = [IsAuthenticated]
+
+        elif self.action in ["update", "partial_update", "destroy", "create"]:
+            self.permission_classes = [IsOwnerOrReadOnly]
+
+        return super().get_permissions()
+
     def _like_dislike_or_remove(self, request, like_value: bool) -> None:
         """Like, dislike, or remove both"""
         comment = self.get_comment()
@@ -343,6 +384,15 @@ class TagViewSet(
             return PostListSerializer
 
         return TaggitSerializer
+
+    def get_permissions(self):
+        if self.action in [
+            "retrieve",
+            "create"
+        ]:
+            self.permission_classes = [IsAuthenticated]
+
+        return super().get_permissions()
 
     def retrieve(self, request, pk):
         """Return posts under tag pk"""
