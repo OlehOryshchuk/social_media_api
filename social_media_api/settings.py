@@ -153,7 +153,7 @@ REST_FRAMEWORK = {
         "social_media.paginations.CustomPagination"
     ),
     "DEFAULT_FILTER_BACKENDS": (
-        "django_filters.reset_framework.DjangoFilterBackend",
+        "django_filters.rest_framework.DjangoFilterBackend",
     )
 }
 
