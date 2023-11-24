@@ -203,7 +203,9 @@ class PostViewSet(
             "profiles_liked",
             "profiles_disliked",
             "dislike_remove_dislike",
-            "like_unlike"
+            "like_unlike",
+            "post_liked",
+            "post_disliked"
         ]:
             self.permission_classes = [IsAuthenticated]
 
