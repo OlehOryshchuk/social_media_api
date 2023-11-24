@@ -185,6 +185,8 @@ class PostViewSet(
         if self.action in [
                 "profile_posts",
                 "list",
+                "post_liked",
+                "post_disliked",
         ]:
             return PostListSerializer
 
@@ -238,6 +240,19 @@ class PostViewSet(
 
         return self.custom_paginate_queryset(data)
 
+    def _get_posts_current_profile_liked_disliked(self, request, like_value: bool):
+        profile = request.user.profile
+        posts_ids = profile.postrate_set.filter(like=like_value).values_list("post")
+        data = Post.objects.filter(id__in=posts_ids)
+
+        improve_queries = self.get_serializer().setup_eager_loading(data)
+
+        annotate = count_likes_dislikes(improve_queries, "postrate").annotate(
+            num_of_comments=Count("comments", distinct=True)
+        ).order_by("-num_of_comments")
+
+        return self.custom_paginate_queryset(annotate)
+
     @action(methods=["get"], detail=True,)
     def profiles_liked(self, request, pk):
         """Return profiles who liked post"""
@@ -247,6 +262,16 @@ class PostViewSet(
     def profiles_disliked(self, request, pk):
         """Return profiles who disliked post"""
         return self._get_post_profiles_who_likes_or_dislikes(request, False)
+
+    @action(methods=["get"], detail=False, url_name="liked")
+    def post_liked(self, request):
+        """Return posts current profile liked"""
+        return self._get_posts_current_profile_liked_disliked(request, True)
+
+    @action(methods=["get"], detail=False, url_name="disliked")
+    def post_disliked(self, request):
+        """Return posts current profile disliked"""
+        return self._get_posts_current_profile_liked_disliked(request, False)
 
     @action(
         methods=["get"],
