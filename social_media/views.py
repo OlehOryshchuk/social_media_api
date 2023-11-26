@@ -1,13 +1,21 @@
+from typing import Callable
+
 from django.db.models import (
     Count,
     QuerySet,
 )
 from django.shortcuts import get_object_or_404
 
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
+
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from taggit.models import Tag
@@ -42,6 +50,26 @@ from .view_utils import (
 )
 
 from .permissions import IsOwnerOrReadOnly
+
+
+def schema_filter_by_username(endpoint: Callable):
+    return extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="Search",
+                description="Search profiles by profile user username",
+                type=str,
+                required=False,
+                examples=[
+                    OpenApiExample(
+                        "Example1",
+                        description="Search by profile by user username",
+                        value="br"
+                    )
+                ]
+            )
+        ]
+    )(endpoint)
 
 
 class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
@@ -113,6 +141,11 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         current_profile.followings.add(profile)
         return Response({"follow": "Follow successful"}, status=status.HTTP_200_OK)
 
+    @schema_filter_by_username
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @schema_filter_by_username
     @action(methods=["get"], detail=True)
     def followings(self, request, pk=None):
         """Return list of profiles current profile is following"""
@@ -122,6 +155,7 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
 
         return self.custom_paginate_queryset(filter_que)
 
+    @schema_filter_by_username
     @action(methods=["get"], detail=True,)
     def followers(self, request, pk=None):
         """Return list of profiles that are following current profile"""
@@ -306,6 +340,8 @@ class CommentViewSet(
     Create/Update/Delete comment"""
 
     serializer_class = CommentSerializer
+    filter_backends = [OrderingFilter]
+    ordering_fields = ["created_at"]
     queryset = Comment.objects.all()
 
     def get_post(self):
@@ -378,16 +414,18 @@ class CommentViewSet(
         """GET comments under post"""
         comments = self.get_comments()
         improve_queries = self.get_serializer().setup_eager_loading(comments)
+        queryset = self.filter_queryset(improve_queries)
 
-        return self.custom_paginate_queryset(improve_queries)
+        return self.custom_paginate_queryset(queryset)
 
     def retrieve(self, request, post_pk: int, pk: int):
         """GET comment replies"""
         replies = self.get_comment().replies
         improve_queries = self.get_serializer().setup_eager_loading(replies)
         annotate = count_likes_dislikes(improve_queries, "commentrate")
+        queryset = self.filter_queryset(annotate)
 
-        return self.custom_paginate_queryset(annotate)
+        return self.custom_paginate_queryset(queryset)
 
 
 class TagViewSet(
