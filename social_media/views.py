@@ -7,10 +7,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
-
-from django_filters.rest_framework import DjangoFilterBackend
 
 from taggit.models import Tag
 from taggit.serializers import (
@@ -50,7 +48,8 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
     # TODO add filter by username
     serializer_class = ProfileSerializer
     queryset = Profile.objects.select_related("user")
-    filterset_fields = ["user__username"]
+    filter_backends = [SearchFilter]
+    search_fields = ["user__username"]
 
     def get_queryset(self):
         queryset = self.queryset
@@ -129,7 +128,7 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         profile = self.get_object()
         followers = profile.followers.select_related("user")
         filter_que = self.filter_queryset(followers)
-
+        print(filter_que)
         return self.custom_paginate_queryset(filter_que)
 
     @action(methods=["post"], detail=True,)
