@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "drf_spectacular",
     "debug_toolbar",
     "rest_framework",
     "rest_framework.authtoken",
@@ -154,7 +155,8 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
-    )
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # to see what those settings do see in
@@ -174,6 +176,20 @@ DJOSER = {
     "EMAIL": {
         "password_reset": "user.views.PasswordResetEmail"
     }
+}
+
+# Set drf_spectacular settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Social media API",
+    "DESCRIPTION": "Create/view/comment/like/dislike posts of others profiles",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "defaultModelRendering": "model",
+        "defaultModelsExpandDepth": 2,
+        "defaultModelExpandDepth": 2,
+    },
 }
 
 # Email configurations
