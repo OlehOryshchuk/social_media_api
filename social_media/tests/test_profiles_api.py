@@ -132,8 +132,90 @@ class UnauthenticatedProfileApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_follow_unfollow_profile_forbidden(self):
-        res = self.client.get(upload_profile_picture_url(self.user.profile))
+        res = self.client.post(upload_profile_picture_url(self.user.profile))
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
+class AuthenticatedProfileApiTests(TestCase):
+    def setUp(self) -> None:
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            email="Main@gmail.com", password="rvtquen", username="MainUser"
+        )
+        self.client.force_authenticate(self.user)
 
+        self.profile = self.user.profile
+
+    def test_list_available(self):
+        res = self.client.get(PROFILE_LIST)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_detail_available(self):
+        res = self.client.get(detail_url("profile", self.profile.id))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_get_profile_followings_available(self):
+        for i in range(3):
+            new_user = get_user_model().objects.create_user(
+                email=f"test{i}@gmail.com",
+                password="rctvrtry",
+                username=f"{i}User"
+            )
+            self.profile.followings.add(new_user.profile)
+            self.profile.save()
+
+        res = self.client.get(followings_url(self.profile.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        followings = self.profile.followings.all()
+        serializer = ProfileListSerializer(
+            followings, many=True, context={"request": res.wsgi_request}
+        )
+
+        self.assertEqual(res.data["results"], serializer.data)
+
+    def test_get_profile_followers_available(self):
+        for i in range(3):
+            new_user = get_user_model().objects.create_user(
+                email=f"test{i}@gmail.com",
+                password="rctvrtry",
+                username=f"{i}User"
+            )
+            self.profile.followers.add(new_user.profile)
+            self.profile.save()
+
+        res = self.client.get(followers_url(self.profile.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        followings = self.profile.followers.all()
+        serializer = ProfileListSerializer(
+            followings, many=True, context={"request": res.wsgi_request}
+        )
+
+        self.assertEqual(res.data["results"], serializer.data)
+
+    def test_follow_profile(self):
+        test_user = get_user_model().objects.create_user(
+            email="testuser@gmail.com", password="rvtrsgh", username="testUser"
+        )
+        test_profile = test_user.profile
+
+        res = self.client.post(follow_unfollow_url(test_profile.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(test_profile, self.profile.followings.all())
+
+    def test_unfollow_profile(self):
+        test_user = get_user_model().objects.create_user(
+            email="testuser@gmail.com", password="rvtrsgh", username="testUser"
+        )
+        test_profile = test_user.profile
+        self.profile.followings.add(test_profile)
+        self.profile.save()
+
+        res = self.client.post(follow_unfollow_url(test_profile.id))
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertNotIn(test_profile, self.profile.followings.all())
