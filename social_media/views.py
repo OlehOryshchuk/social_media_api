@@ -42,7 +42,7 @@ from .view_utils import (
     schema_filter_by_username,
 )
 
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsAuthenticatedAndUserHaveProfile
 
 
 class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
@@ -81,15 +81,23 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in [
-            "follow_or_unfollow",
             "followings",
             "followers",
-            "upload_profile_picture"
+            "create",
         ]:
             self.permission_classes = [IsAuthenticated]
 
-        elif self.action in ["update", "partial_update", "destroy", "create"]:
+        elif self.action in [
+            "update",
+            "partial_update",
+            "destroy",
+            "retrieve",
+            "upload_profile_picture",
+        ]:
             self.permission_classes = [IsOwnerOrReadOnly]
+
+        elif self.action == "follow_or_unfollow":
+            self.permission_classes = [IsAuthenticatedAndUserHaveProfile]
 
         return super().get_permissions()
 
@@ -206,17 +214,22 @@ class PostViewSet(
 
     def get_permissions(self):
         if self.action in [
-            "profiles_liked",
-            "profiles_disliked",
             "dislike_remove_dislike",
             "like_unlike",
             "post_liked",
-            "post_disliked"
+            "post_disliked",
+            "create",
+        ]:
+            self.permission_classes = [IsAuthenticatedAndUserHaveProfile]
+
+        elif self.action in ["update", "partial_update", "destroy"]:
+            self.permission_classes = [IsOwnerOrReadOnly]
+
+        elif self.action in [
+            "profiles_liked",
+            "profiles_disliked",
         ]:
             self.permission_classes = [IsAuthenticated]
-
-        elif self.action in ["update", "partial_update", "destroy", "create"]:
-            self.permission_classes = [IsOwnerOrReadOnly]
 
         return super().get_permissions()
 
@@ -304,6 +317,7 @@ class PostViewSet(
 class CommentViewSet(
     PaginateResponseMixin,
     LikeDislikeObjectMixin,
+    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -346,7 +360,7 @@ class CommentViewSet(
         return self.annotate_queryset(queryset)
 
     def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
+        if self.action in ["list", "replies"]:
             return CommentListSerializer
 
         return CommentSerializer
@@ -355,13 +369,15 @@ class CommentViewSet(
         if self.action in [
             "dislike_remove_dislike",
             "like_unlike",
-            "list",
-            "retrieve",
+            "create",
         ]:
-            self.permission_classes = [IsAuthenticated]
+            self.permission_classes = [IsAuthenticatedAndUserHaveProfile]
 
-        elif self.action in ["update", "partial_update", "destroy", "create"]:
+        elif self.action in ["update", "partial_update", "destroy", "retrieve"]:
             self.permission_classes = [IsOwnerOrReadOnly]
+
+        elif self.action == "replies":
+            self.permission_classes = [IsAuthenticated]
 
         return super().get_permissions()
 
@@ -391,7 +407,8 @@ class CommentViewSet(
 
         return self.custom_paginate_queryset(queryset)
 
-    def retrieve(self, request, post_pk: int, pk: int):
+    @action(detail=True, methods=["get"])
+    def replies(self, request, post_pk: int, pk: int):
         """GET comment replies"""
         replies = self.get_comment().replies
         improve_queries = self.get_serializer().setup_eager_loading(replies)
