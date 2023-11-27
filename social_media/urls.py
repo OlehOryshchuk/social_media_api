@@ -11,10 +11,12 @@ router.register("profiles", ProfileViewSet)
 router.register("posts", PostViewSet)
 router.register("tags", TagViewSet)
 
-# create, delete, update endpoints
-cr_up_de = {
+# update, delete, retrieve endpoints
+up_de_rt = {
+    "get": "retrieve",
     "delete": "destroy",
     "patch": "update",
+    "put": "update"
 }
 
 urlpatterns = [
@@ -27,14 +29,14 @@ urlpatterns = [
     path(
         "post/<int:post_pk>/comments/<int:pk>/",
         CommentViewSet.as_view(
-            {"get": "retrieve", "post": "create"}
+            {"get": "replies"}
         ),
         name="comment-replies",
     ),
     path(
-        "post/<int:post_pk>/comments/<int:pk>/",
+        "post/comments/<int:pk>/",
         CommentViewSet.as_view(
-            {**cr_up_de}
+            {**up_de_rt}
         ),
         name="comment-manager",
     ),
