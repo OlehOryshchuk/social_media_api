@@ -1,5 +1,13 @@
 from abc import ABC, abstractmethod
 
+from typing import Callable
+
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
+
 from django.db.models import (
     Q,
     Count,
@@ -64,3 +72,22 @@ class PaginateResponseMixin:
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+def schema_filter_by_username(endpoint: Callable):
+    return extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="Search",
+                description="Search profiles by profile user username",
+                type=str,
+                required=False,
+                examples=[
+                    OpenApiExample(
+                        "Example1",
+                        description="Search by profile by user username",
+                        value="br"
+                    )
+                ]
+            )
+        ]
+    )(endpoint)

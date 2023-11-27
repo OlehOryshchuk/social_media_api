@@ -1,16 +1,8 @@
-from typing import Callable
-
 from django.db.models import (
     Count,
     QuerySet,
 )
 from django.shortcuts import get_object_or_404
-
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiParameter,
-    OpenApiExample,
-)
 
 from rest_framework import status, mixins, viewsets
 from rest_framework.response import Response
@@ -47,29 +39,10 @@ from .view_utils import (
     LikeDislikeObjectMixin,
     count_likes_dislikes,
     PaginateResponseMixin,
+    schema_filter_by_username,
 )
 
 from .permissions import IsOwnerOrReadOnly
-
-
-def schema_filter_by_username(endpoint: Callable):
-    return extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="Search",
-                description="Search profiles by profile user username",
-                type=str,
-                required=False,
-                examples=[
-                    OpenApiExample(
-                        "Example1",
-                        description="Search by profile by user username",
-                        value="br"
-                    )
-                ]
-            )
-        ]
-    )(endpoint)
 
 
 class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
@@ -162,7 +135,7 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         profile = self.get_object()
         followers = profile.followers.select_related("user")
         filter_que = self.filter_queryset(followers)
-        print(filter_que)
+
         return self.custom_paginate_queryset(filter_que)
 
     @action(methods=["post"], detail=True,)
