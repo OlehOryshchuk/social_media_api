@@ -260,3 +260,14 @@ class AuthenticatedProfileApiTests(TestCase):
 
         with self.assertRaises(Profile.DoesNotExist):
             Profile.objects.get(id=self.profile.id)
+
+    def test_others_user_can_not_upload_image(self):
+        user2 = get_user_model().objects.create_user(
+            email="user2@gmail.com", password="rvyryy", username="User2"
+        )
+
+        url = upload_profile_picture_url(user2.profile.id)
+
+        res = self.client.post(url)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
