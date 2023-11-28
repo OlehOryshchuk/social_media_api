@@ -231,3 +231,32 @@ class AuthenticatedProfileApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertNotIn(test_profile, self.profile.followings.all())
+
+    def test_create_profile(self):
+        self.profile.delete()
+
+        res = self.client.post(PROFILE_LIST, data={"user": self.user})
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        profile = self.user.profile
+        serializer = ProfileSerializer(profile)
+
+        self.assertEqual(res.data, serializer.data)
+
+    def test_update_profile(self):
+        data = {
+            "bio": "Test bio wooooo"
+        }
+
+        res = self.client.patch(detail_url("profile", self.profile.id), data)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(data["bio"], res.data["bio"])
+
+    def test_delete_profile(self):
+        res = self.client.delete(detail_url("profile", self.profile.id))
+
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        with self.assertRaises(Profile.DoesNotExist):
+            Profile.objects.get(id=self.profile.id)
