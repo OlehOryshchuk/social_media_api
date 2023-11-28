@@ -131,9 +131,21 @@ class UnauthenticatedProfileApiTests(TestCase):
         res = self.client.get(followers_url(self.user.profile))
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_follow_unfollow_profile_forbidden(self):
-        res = self.client.post(upload_profile_picture_url(self.user.profile))
-        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+    def test_follow_unfollow_profile_auth_required(self):
+        res = self.client.post(upload_profile_picture_url(self.user.profile.id))
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_update_profile_auth_required(self):
+        res = self.client.put(detail_url("profile", self.user.profile.id))
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_partial_update_profile_auth_required(self):
+        res = self.client.patch(detail_url("profile", self.user.profile.id))
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_delete_profile_auth_required(self):
+        res = self.client.delete(detail_url("profile", self.user.profile.id))
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class AuthenticatedProfileApiTests(TestCase):
