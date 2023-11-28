@@ -271,3 +271,69 @@ class AuthenticatedProfileApiTests(TestCase):
         res = self.client.post(url)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class ProfileUploadPictureTest(TestCase):
+    def setUp(self) -> None:
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            email="Main@gmail.com", password="rvtquen", username="MainUser"
+        )
+        self.client.force_authenticate(self.user)
+
+        self.profile = self.user.profile
+
+    def tearDown(self) -> None:
+        self.profile.profile_picture.delete()
+
+    def test_upload_profile_picture(self):
+        url = upload_profile_picture_url(self.profile.id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            res = self.client.post(
+                url, {"profile_picture": ntf}, format="multipart"
+            )
+        self.profile.refresh_from_db()
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("profile_picture", res.data)
+        self.assertTrue(os.path.exists(self.profile.profile_picture.path))
+
+    def test_upload_image_profile_picture_bad_request(self):
+        url = upload_profile_picture_url(self.profile.id)
+        res = self.client.post(
+            url, {"profile_picture": "not image"}
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_profile_picture_url_is_shown_on_list(self):
+        url = upload_profile_picture_url(self.profile.id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            self.client.post(
+                url, {"image": ntf}, format="multipart"
+            )
+        res = self.client.get(PROFILE_LIST)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("profile_picture", res.data["results"][0].keys())
+
+    def test_profile_picture_url_is_shown_on_detail(self):
+        url = upload_profile_picture_url(self.profile.id)
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
+            img = Image.new("RGB", (10, 10))
+            img.save(ntf, format="JPEG")
+            ntf.seek(0)
+            self.client.post(
+                url, {"image": ntf}, format="multipart"
+            )
+
+        res = self.client.get(PROFILE_LIST)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("profile_picture", res.data["results"][0].keys())
