@@ -10,7 +10,7 @@ from taggit.managers import TaggableManager
 
 def get_file_new_name(instance) -> str:
     """Return filename base on instance"""
-    if getattr(instance, "username"):
+    if isinstance(instance, Profile):
         return f"{instance.user.username}"
     return f"{instance.author.user.username}_post"
 

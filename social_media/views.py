@@ -104,7 +104,7 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(methods=["get"], detail=True, url_name="follow_unfollow")
+    @action(methods=["post"], detail=True, url_name="follow-unfollow")
     def follow_or_unfollow(self, request, pk=None):
         """Follow or unfollow profile by current profile"""
         profile = self.get_object()
@@ -116,7 +116,7 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         if is_following:
             # unfollow profile
             current_profile.followings.remove(profile)
-            return Response({"unfollow": "Unfollow successful"})
+            return Response({"unfollow": "Unfollow successful"}, status=status.HTTP_200_OK)
 
         # follow profile
         current_profile.followings.add(profile)
