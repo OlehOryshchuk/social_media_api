@@ -2,7 +2,7 @@ from django.db.models import Count
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from social_media.models import Profile, Post
+from social_media.models import Profile, Post, Comment, CommentRate
 from social_media.view_utils import count_likes_dislikes
 
 
@@ -45,3 +45,31 @@ def create_number_of_posts(number: int, profile: Profile = None) -> list[Post]:
         profile = user.profile
 
     return [Post.objects.create(author=profile) for i in range(number)]
+
+
+def annotate_comments(posts):
+    return count_likes_dislikes(posts, "commentrate").annotate(
+            num_of_replies=Count("replies"),
+        ).order_by("-num_of_replies")
+
+
+def create_number_of_comments(number: int, post: Post, profile: Profile = None, **extra_fields) -> list[Comment]:
+    if profile:
+        # if profile is provided then used it
+        pass
+    else:
+        # else there is no profile provided, create
+        user = get_user_model().objects.create_user(
+            email="number_of_posts@gmail.com", password="rvrtrt", username="Count"
+        )
+        profile = user.profile
+
+    return [
+        Comment.objects.create(
+            author=profile,
+            post=post,
+            **extra_fields
+        )
+        for i in range(number)
+    ]
+
