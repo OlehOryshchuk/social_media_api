@@ -33,7 +33,7 @@ def annotate_posts(posts):
     ).order_by("-num_of_comments", "-created_at")
 
 
-def create_number_of_posts(number: int, profile: Profile = None):
+def create_number_of_posts(number: int, profile: Profile = None) -> list[Post]:
     if profile:
         # if profile is provided then used it
         pass
@@ -44,8 +44,4 @@ def create_number_of_posts(number: int, profile: Profile = None):
         )
         profile = user.profile
 
-    for i in range(number):
-        Post.objects.create(
-            author=profile
-        )
-
+    return [Post.objects.create(author=profile) for i in range(number)]
