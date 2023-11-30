@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "drf_spectacular",
     "debug_toolbar",
     "rest_framework",
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
     "taggit",
     "djoser",
     "django_filters",
+    "django_dump_load_utf8",
+
     "user",
     "social_media",
 ]
