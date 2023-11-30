@@ -10,5 +10,5 @@ user = settings.AUTH_USER_MODEL
 @receiver(post_save, sender=user)
 def create_profile(sender: post_save, instance: user, created: bool, **kwargs):
     """When user is save to DB we will create user profile"""
-    if created and not instance.is_staff:
+    if created:
         Profile.objects.create(user=instance)
