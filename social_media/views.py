@@ -11,12 +11,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from taggit.models import Tag
-from taggit.serializers import (
-    TaggitSerializer
-)
 
 from .serializers import (
     TagListSerializer,
+    TagSerializer,
     PostSerializer,
     PostListSerializer,
     CommentSerializer,
@@ -40,6 +38,7 @@ from .view_utils import (
     count_likes_dislikes,
     PaginateResponseMixin,
     schema_filter_by_username,
+    order_by_posts
 )
 
 from .permissions import IsOwnerOrReadOnly, IsAuthenticatedAndUserHaveProfile
@@ -191,16 +190,14 @@ class PostViewSet(
         # Count the number of comments for each post
         queryset = queryset.annotate(num_of_comments=Count("comments", distinct=True))
 
-        queryset = queryset.order_by("-created_at", "num_of_comments")
-
-        return queryset
+        return order_by_posts(queryset)
 
     def get_serializer_class(self):
         if self.action in [
                 "profile_posts",
                 "list",
-                "post_liked",
-                "post_disliked",
+                "posts_liked",
+                "posts_disliked",
         ]:
             return PostListSerializer
 
@@ -216,8 +213,8 @@ class PostViewSet(
         if self.action in [
             "dislike_remove_dislike",
             "like_unlike",
-            "post_liked",
-            "post_disliked",
+            "posts_liked",
+            "posts_disliked",
             "create",
         ]:
             self.permission_classes = [IsAuthenticatedAndUserHaveProfile]
@@ -270,27 +267,27 @@ class PostViewSet(
 
         annotate = count_likes_dislikes(improve_queries, "postrate").annotate(
             num_of_comments=Count("comments", distinct=True)
-        ).order_by("-num_of_comments")
+        )
 
-        return self.custom_paginate_queryset(annotate)
+        return self.custom_paginate_queryset(order_by_posts(annotate))
 
     @action(methods=["get"], detail=True,)
     def profiles_liked(self, request, pk):
         """Return profiles who liked post"""
         return self._get_post_profiles_who_likes_or_dislikes(request, True)
 
-    @action(methods=["get"], detail=True, url_name="profile-disliked")
+    @action(methods=["get"], detail=True)
     def profiles_disliked(self, request, pk):
         """Return profiles who disliked post"""
         return self._get_post_profiles_who_likes_or_dislikes(request, False)
 
     @action(methods=["get"], detail=False, url_name="liked")
-    def post_liked(self, request):
+    def posts_liked(self, request):
         """Return posts current profile liked"""
         return self._get_posts_current_profile_liked_disliked(request, True)
 
     @action(methods=["get"], detail=False, url_name="disliked")
-    def post_disliked(self, request):
+    def posts_disliked(self, request):
         """Return posts current profile disliked"""
         return self._get_posts_current_profile_liked_disliked(request, False)
 
@@ -309,9 +306,9 @@ class PostViewSet(
 
         annotate = count_likes_dislikes(improve_queries, "postrate").annotate(
             num_of_comments=Count("comments", distinct=True)
-        ).order_by("-num_of_comments")
+        )
 
-        return self.custom_paginate_queryset(annotate)
+        return self.custom_paginate_queryset(order_by_posts(annotate))
 
 
 class CommentViewSet(
@@ -376,7 +373,7 @@ class CommentViewSet(
         elif self.action in ["update", "partial_update", "destroy", "retrieve"]:
             self.permission_classes = [IsOwnerOrReadOnly]
 
-        elif self.action == "replies":
+        elif self.action in ["replies", "list"]:
             self.permission_classes = [IsAuthenticated]
 
         return super().get_permissions()
@@ -408,9 +405,10 @@ class CommentViewSet(
         return self.custom_paginate_queryset(queryset)
 
     @action(detail=True, methods=["get"])
-    def replies(self, request, post_pk: int, pk: int):
+    def replies(self, request, pk: int):
         """GET comment replies"""
         replies = self.get_comment().replies
+        # setup_eager_loading will return queryset (.all())
         improve_queries = self.get_serializer().setup_eager_loading(replies)
         annotate = count_likes_dislikes(improve_queries, "commentrate")
         queryset = self.filter_queryset(annotate)
@@ -427,7 +425,10 @@ class TagViewSet(
     """Get list/create tags, and detail endpoint will return
     posts under tag id"""
 
-    serializer_class = TaggitSerializer
+    serializer_class = TagSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["name"]
+
     queryset = Tag.objects.all()
 
     def get_serializer_class(self):
@@ -437,7 +438,7 @@ class TagViewSet(
         if self.action == "retrieve":
             return PostListSerializer
 
-        return TaggitSerializer
+        return TagSerializer
 
     def get_permissions(self):
         if self.action in [
@@ -455,8 +456,8 @@ class TagViewSet(
 
         annotate = count_likes_dislikes(data, "postrate").annotate(
             num_of_comments=Count("comments")
-        ).order_by("num_of_comments")
+        )
 
         improve_queries = self.get_serializer().setup_eager_loading(annotate)
 
-        return self.custom_paginate_queryset(improve_queries)
+        return self.custom_paginate_queryset(order_by_posts(improve_queries))

@@ -93,7 +93,11 @@ class CommentListSerializer(LikeDislikeCountFieldSerializer, CommentSerializer):
         view_name="social_media:comment-dislike",
         lookup_url_kwarg="pk"
     )
-    replies_url = serializers.SerializerMethodField()
+    replies_url = serializers.HyperlinkedIdentityField(
+        read_only=True,
+        view_name="social_media:comment-replies",
+        lookup_url_kwarg="pk"
+    )
     author = ProfileListSerializer(read_only=True)
 
     class Meta:
@@ -127,6 +131,12 @@ class CommentListSerializer(LikeDislikeCountFieldSerializer, CommentSerializer):
         queryset = queryset.prefetch_related("likes")
 
         return queryset
+
+
+class TagSerializer(TaggitSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["name"]
 
 
 class TagListSerializer(serializers.ModelSerializer):

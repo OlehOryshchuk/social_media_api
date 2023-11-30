@@ -28,6 +28,7 @@ class IsAuthenticatedAndUserHaveProfile(IsAuthenticated):
 
     def has_permission(self, request, view):
         is_authenticated = super().has_permission(request, view)
+
         if is_authenticated and not hasattr(request.user, "profile"):
             raise PermissionDenied(self.message)
         return is_authenticated

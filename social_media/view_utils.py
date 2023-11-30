@@ -44,6 +44,10 @@ def count_likes_dislikes(queryset: QuerySet, rate_model: str) -> QuerySet:
     return queryset
 
 
+def order_by_posts(posts: QuerySet) -> QuerySet:
+    return posts.order_by("-created_at", "-num_of_comments")
+
+
 class LikeDislikeObjectMixin(ABC):
     @abstractmethod
     def _like_dislike_or_remove(self, request, like_value: bool):
