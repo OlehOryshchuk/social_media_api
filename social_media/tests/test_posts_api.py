@@ -55,7 +55,7 @@ def profiles_disliked_url(post_id):
     return reverse("social_media:post-profiles-disliked", args=[post_id])
 
 
-class UnauthenticatedProfileApiTests(TestCase):
+class UnauthenticatedPostApiTests(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
@@ -263,6 +263,8 @@ class AuthenticatedPostApiTests(TestCase):
 
     def test_create_post_profile_required(self):
         self.user.profile.delete()
+        self.user.refresh_from_db()
+
         res = self.client.post(POST_LIST, data={})
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 

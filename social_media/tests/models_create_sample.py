@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, QuerySet
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
@@ -27,10 +27,10 @@ def annotate_profile(profile):
     return profile
 
 
-def annotate_posts(posts):
+def annotate_posts(posts: QuerySet):
     return count_likes_dislikes(posts, "postrate").annotate(
         num_of_comments=Count("comments", distinct=True)
-    ).order_by("-num_of_comments", "-created_at")
+    ).order_by("-created_at", "-num_of_comments")
 
 
 def create_number_of_posts(number: int, profile: Profile = None) -> list[Post]:
@@ -47,7 +47,7 @@ def create_number_of_posts(number: int, profile: Profile = None) -> list[Post]:
     return [Post.objects.create(author=profile) for i in range(number)]
 
 
-def annotate_comments(posts):
+def annotate_comments(posts: QuerySet):
     return count_likes_dislikes(posts, "commentrate").annotate(
             num_of_replies=Count("replies"),
         ).order_by("-num_of_replies")
