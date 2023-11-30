@@ -23,7 +23,9 @@ def custom_image_file_path(instance, filename):
 
 class Profile(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile"
     )
     followings = models.ManyToManyField(
         "self", related_name="followers", symmetrical=False, blank=True
@@ -44,9 +46,7 @@ class Post(models.Model):
         on_delete=models.CASCADE,
     )
     image = models.ImageField(
-        upload_to=custom_image_file_path,
-        blank=True,
-        null=True
+        upload_to=custom_image_file_path, blank=True, null=True
     )
     content = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

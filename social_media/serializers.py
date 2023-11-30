@@ -4,10 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from taggit.serializers import (
-    TaggitSerializer,
-    TagListSerializerField
-)
+from taggit.serializers import TaggitSerializer, TagListSerializerField
 from taggit.models import Tag
 
 from .models import Profile, Post, Comment
@@ -26,9 +23,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         try:
             return super().create(validated_data)
         except IntegrityError:
-            raise ValidationError({
-                "error": "A profile for this user already exist"
-            }, code="unique_constrain_failed")
+            raise ValidationError(
+                {"error": "A profile for this user already exist"},
+                code="unique_constrain_failed",
+            )
 
 
 class ProfileListSerializer(ProfileSerializer):
@@ -49,6 +47,7 @@ class ProfileListSerializer(ProfileSerializer):
 
 class ProfileImageUpload(ProfileSerializer):
     """Upload profile picture"""
+
     class Meta:
         model = Profile
         fields = ["id", "profile_picture"]
@@ -73,11 +72,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class LikeDislikeCountFieldSerializer(serializers.Serializer):
     """CLass which holds common fields"""
+
     num_of_likes = serializers.IntegerField(read_only=True)
     num_of_dislikes = serializers.IntegerField(read_only=True)
 
 
-class CommentListSerializer(LikeDislikeCountFieldSerializer, CommentSerializer):
+class CommentListSerializer(
+    LikeDislikeCountFieldSerializer, CommentSerializer
+):
     """See posts comments, and every comment have number
     of likes/dislikes/replies and see who is the author of
     comment"""
@@ -94,6 +96,7 @@ class CommentListSerializer(LikeDislikeCountFieldSerializer, CommentSerializer):
         lookup_url_kwarg="pk"
     )
     replies_url = serializers.HyperlinkedIdentityField(
+
         read_only=True,
         view_name="social_media:comment-replies",
         lookup_url_kwarg="pk"
@@ -153,6 +156,7 @@ class TagListSerializer(serializers.ModelSerializer):
 class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
     """List of posts, where we can see number of
     likes/dislikes/comments and post tags"""
+
     author = ProfileListSerializer(read_only=True)
     comments_url = serializers.HyperlinkedIdentityField(
         read_only=True,
@@ -196,6 +200,7 @@ class PostListSerializer(LikeDislikeCountFieldSerializer, PostSerializer):
 
 class ProfileDetailSerializer(ProfileSerializer):
     """Detail information of current user profile"""
+
     username = serializers.CharField(read_only=True, source="user.username")
     followings = serializers.HyperlinkedIdentityField(
         view_name="social_media:profile-followings"

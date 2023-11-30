@@ -38,7 +38,7 @@ from .view_utils import (
     count_likes_dislikes,
     PaginateResponseMixin,
     schema_filter_by_username,
-    order_by_posts
+    order_by_posts,
 )
 
 from .permissions import IsOwnerOrReadOnly, IsAuthenticatedAndUserHaveProfile
@@ -110,16 +110,23 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         current_profile: Profile = request.user.profile
 
         # check if current prf is following another prf
-        is_following = current_profile.followings.filter(id=profile.id).exists()
+        is_following = current_profile.followings.filter(
+            id=profile.id
+        ).exists()
 
         if is_following:
             # unfollow profile
             current_profile.followings.remove(profile)
-            return Response({"unfollow": "Unfollow successful"}, status=status.HTTP_200_OK)
+            return Response(
+                {"unfollow": "Unfollow successful"}, status=status.HTTP_200_OK
+            )
 
         # follow profile
         current_profile.followings.add(profile)
-        return Response({"follow": "Follow successful"}, status=status.HTTP_200_OK)
+        return Response(
+            {"follow": "Follow successful"},
+            status=status.HTTP_200_OK
+        )
 
     @schema_filter_by_username
     def list(self, request, *args, **kwargs):
@@ -136,7 +143,10 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
         return self.custom_paginate_queryset(filter_que)
 
     @schema_filter_by_username
-    @action(methods=["get"], detail=True,)
+    @action(
+        methods=["get"],
+        detail=True,
+    )
     def followers(self, request, pk=None):
         """Return list of profiles that are following current profile"""
         profile = self.get_object()
@@ -145,7 +155,10 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
 
         return self.custom_paginate_queryset(filter_que)
 
-    @action(methods=["post"], detail=True,)
+    @action(
+        methods=["post"],
+        detail=True,
+    )
     def upload_profile_picture(self, request, pk=None):
         """Upload profile image on current profile"""
         profile = self.get_object()
@@ -176,7 +189,9 @@ class PostViewSet(
 
     def get_queryset(self):
         queryset = self.queryset
-        following_posts: bool = self.request.query_params.get("following_posts", None)
+        following_posts: bool = self.request.query_params.get(
+            "following_posts", None
+        )
 
         if following_posts:
             current_profile = self.request.user.profile
@@ -188,23 +203,22 @@ class PostViewSet(
         queryset = count_likes_dislikes(queryset, "postrate")
 
         # Count the number of comments for each post
-        queryset = queryset.annotate(num_of_comments=Count("comments", distinct=True))
+        queryset = queryset.annotate(
+            num_of_comments=Count("comments", distinct=True)
+        )
 
         return order_by_posts(queryset)
 
     def get_serializer_class(self):
         if self.action in [
-                "profile_posts",
-                "list",
-                "posts_liked",
-                "posts_disliked",
+            "profile_posts",
+            "list",
+            "posts_liked",
+            "posts_disliked",
         ]:
             return PostListSerializer
 
-        if self.action in [
-            "profiles_liked",
-            "profiles_disliked"
-        ]:
+        if self.action in ["profiles_liked", "profiles_disliked"]:
             return ProfileListSerializer
 
         return PostSerializer
@@ -250,17 +264,28 @@ class PostViewSet(
                 post_rate.like = like_value
                 post_rate.save()
 
-    def _get_post_profiles_who_likes_or_dislikes(self, request, like_value: bool):
+    def _get_post_profiles_who_likes_or_dislikes(
+            self, request, like_value: bool
+    ):
         """Return profiles that liked or disliked post"""
         post = self.get_object()
-        profile_ids = post.postrate_set.filter(like=like_value).values_list("profile")
-        data = Profile.objects.filter(id__in=profile_ids).select_related("user")
+        profile_ids = post.postrate_set.filter(
+            like=like_value
+        ).values_list("profile")
+
+        data = Profile.objects.filter(
+            id__in=profile_ids
+        ).select_related("user")
 
         return self.custom_paginate_queryset(data)
 
-    def _get_posts_current_profile_liked_disliked(self, request, like_value: bool):
+    def _get_posts_current_profile_liked_disliked(
+            self, request, like_value: bool
+    ):
         profile = request.user.profile
-        posts_ids = profile.postrate_set.filter(like=like_value).values_list("post")
+        posts_ids = profile.postrate_set.filter(
+            like=like_value
+        ).values_list("post")
         data = Post.objects.filter(id__in=posts_ids)
 
         improve_queries = self.get_serializer().setup_eager_loading(data)
@@ -271,7 +296,10 @@ class PostViewSet(
 
         return self.custom_paginate_queryset(order_by_posts(annotate))
 
-    @action(methods=["get"], detail=True,)
+    @action(
+        methods=["get"],
+        detail=True,
+    )
     def profiles_liked(self, request, pk):
         """Return profiles who liked post"""
         return self._get_post_profiles_who_likes_or_dislikes(request, True)
@@ -340,19 +368,20 @@ class CommentViewSet(
 
     @staticmethod
     def annotate_queryset(queryset: QuerySet) -> QuerySet:
-        queryset = count_likes_dislikes(
-                queryset, "commentrate"
-        ).annotate(
-            num_of_replies=Count("replies"),
-        ).order_by("-num_of_replies")
+        queryset = (
+            count_likes_dislikes(queryset, "commentrate")
+            .annotate(
+                num_of_replies=Count("replies"),
+            )
+            .order_by("-num_of_replies")
+        )
 
         return queryset
 
     def get_comments(self):
         """Return Post comments not replies"""
         queryset = Comment.objects.all().filter(
-            post=self.get_post(),
-            reply_to_comment__isnull=True
+            post=self.get_post(), reply_to_comment__isnull=True
         )
         return self.annotate_queryset(queryset)
 
@@ -370,7 +399,9 @@ class CommentViewSet(
         ]:
             self.permission_classes = [IsAuthenticatedAndUserHaveProfile]
 
-        elif self.action in ["update", "partial_update", "destroy", "retrieve"]:
+        elif self.action in [
+            "update", "partial_update", "destroy", "retrieve"
+        ]:
             self.permission_classes = [IsOwnerOrReadOnly]
 
         elif self.action in ["replies", "list"]:
@@ -384,7 +415,9 @@ class CommentViewSet(
         current_profile = request.user.profile
 
         comment_rate, created = CommentRate.objects.get_or_create(
-            comment=comment, profile=current_profile, defaults={"like": like_value}
+            comment=comment,
+            profile=current_profile,
+            defaults={"like": like_value}
         )
 
         if not created:
@@ -441,10 +474,7 @@ class TagViewSet(
         return TagSerializer
 
     def get_permissions(self):
-        if self.action in [
-            "retrieve",
-            "create"
-        ]:
+        if self.action in ["retrieve", "create"]:
             self.permission_classes = [IsAuthenticated]
 
         return super().get_permissions()

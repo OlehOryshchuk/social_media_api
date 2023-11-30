@@ -13,9 +13,7 @@ def detail_url(view_name: str, instance_id: int):
 def create_number_users(number: int):
     for i in range(number + 1):
         get_user_model().objects.create_user(
-            email=f"testuser{i}@gmail.com",
-            password="rvtrtyrpj",
-            username=f"User{i}"
+            email=f"testuser{i}@gmail.com", password="rvtrtyrpj", username=f"User{i}"
         )
 
 
@@ -28,9 +26,11 @@ def annotate_profile(profile):
 
 
 def annotate_posts(posts: QuerySet):
-    return count_likes_dislikes(posts, "postrate").annotate(
-        num_of_comments=Count("comments", distinct=True)
-    ).order_by("-created_at", "-num_of_comments")
+    return (
+        count_likes_dislikes(posts, "postrate")
+        .annotate(num_of_comments=Count("comments", distinct=True))
+        .order_by("-created_at", "-num_of_comments")
+    )
 
 
 def create_number_of_posts(number: int, profile: Profile = None) -> list[Post]:
@@ -48,12 +48,18 @@ def create_number_of_posts(number: int, profile: Profile = None) -> list[Post]:
 
 
 def annotate_comments(posts: QuerySet):
-    return count_likes_dislikes(posts, "commentrate").annotate(
+    return (
+        count_likes_dislikes(posts, "commentrate")
+        .annotate(
             num_of_replies=Count("replies"),
-        ).order_by("-num_of_replies")
+        )
+        .order_by("-num_of_replies")
+    )
 
 
-def create_number_of_comments(number: int, post: Post, profile: Profile = None, **extra_fields) -> list[Comment]:
+def create_number_of_comments(
+    number: int, post: Post, profile: Profile = None, **extra_fields
+) -> list[Comment]:
     if profile:
         # if profile is provided then used it
         pass
@@ -65,11 +71,6 @@ def create_number_of_comments(number: int, post: Post, profile: Profile = None, 
         profile = user.profile
 
     return [
-        Comment.objects.create(
-            author=profile,
-            post=post,
-            **extra_fields
-        )
+        Comment.objects.create(author=profile, post=post, **extra_fields)
         for i in range(number)
     ]
-

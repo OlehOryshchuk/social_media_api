@@ -13,12 +13,10 @@ from social_media.serializers import (
     ProfileSerializer,
     ProfileListSerializer,
     ProfileDetailSerializer,
-    ProfileImageUpload
+    ProfileImageUpload,
 )
 
-from social_media.models import (
-    Profile
-)
+from social_media.models import Profile
 
 from .models_create_sample import (
     detail_url,
@@ -169,9 +167,7 @@ class AuthenticatedProfileApiTests(TestCase):
     def test_get_profile_followings_available(self):
         for i in range(3):
             new_user = get_user_model().objects.create_user(
-                email=f"test{i}@gmail.com",
-                password="rctvrtry",
-                username=f"{i}User"
+                email=f"test{i}@gmail.com", password="rctvrtry", username=f"{i}User"
             )
             self.profile.followings.add(new_user.profile)
             self.profile.save()
@@ -190,9 +186,7 @@ class AuthenticatedProfileApiTests(TestCase):
     def test_get_profile_followers_available(self):
         for i in range(3):
             new_user = get_user_model().objects.create_user(
-                email=f"test{i}@gmail.com",
-                password="rctvrtry",
-                username=f"{i}User"
+                email=f"test{i}@gmail.com", password="rctvrtry", username=f"{i}User"
             )
             self.profile.followers.add(new_user.profile)
             self.profile.save()
@@ -244,9 +238,7 @@ class AuthenticatedProfileApiTests(TestCase):
         self.assertEqual(res.data, serializer.data)
 
     def test_update_profile(self):
-        data = {
-            "bio": "Test bio wooooo"
-        }
+        data = {"bio": "Test bio wooooo"}
 
         res = self.client.patch(detail_url("profile", self.profile.id), data)
 
@@ -292,9 +284,7 @@ class ProfileUploadPictureTest(TestCase):
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
-            res = self.client.post(
-                url, {"profile_picture": ntf}, format="multipart"
-            )
+            res = self.client.post(url, {"profile_picture": ntf}, format="multipart")
         self.profile.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -303,9 +293,7 @@ class ProfileUploadPictureTest(TestCase):
 
     def test_upload_image_profile_picture_bad_request(self):
         url = upload_profile_picture_url(self.profile.id)
-        res = self.client.post(
-            url, {"profile_picture": "not image"}
-        )
+        res = self.client.post(url, {"profile_picture": "not image"})
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -315,9 +303,7 @@ class ProfileUploadPictureTest(TestCase):
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
-            self.client.post(
-                url, {"image": ntf}, format="multipart"
-            )
+            self.client.post(url, {"image": ntf}, format="multipart")
         res = self.client.get(PROFILE_LIST)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -329,9 +315,7 @@ class ProfileUploadPictureTest(TestCase):
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
-            self.client.post(
-                url, {"image": ntf}, format="multipart"
-            )
+            self.client.post(url, {"image": ntf}, format="multipart")
 
         res = self.client.get(PROFILE_LIST)
 

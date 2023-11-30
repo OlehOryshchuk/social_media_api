@@ -9,11 +9,7 @@ from social_media.serializers import (
     CommentSerializer,
     CommentListSerializer,
 )
-from social_media.models import (
-    Post,
-    Comment,
-    CommentRate
-)
+from social_media.models import Post, Comment, CommentRate
 from social_media.view_utils import count_likes_dislikes
 
 from .models_create_sample import (
@@ -56,9 +52,7 @@ class UnauthenticatedCommentApiTests(TestCase):
         create_number_of_posts(1, self.user.profile)
         self.post = Post.objects.all().first()
 
-        self.comment = Comment.objects.create(
-            author=self.profile, post=self.post
-        )
+        self.comment = Comment.objects.create(author=self.profile, post=self.post)
 
     def test_get_post_comments_auth_required(self):
         res = self.client.get(post_comment_list(self.post.id))
@@ -104,9 +98,7 @@ class AuthenticatedPostApiTests(TestCase):
         create_number_of_posts(1, self.profile)
         self.post = Post.objects.first()
 
-        self.comment = Comment.objects.create(
-            author=self.profile, post=self.post
-        )
+        self.comment = Comment.objects.create(author=self.profile, post=self.post)
 
     def test_get_post_comments(self):
         create_number_of_comments(3, self.post)
@@ -115,10 +107,7 @@ class AuthenticatedPostApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        comments = Comment.objects.filter(
-            post=self.post,
-            reply_to_comment__isnull=True
-        )
+        comments = Comment.objects.filter(post=self.post, reply_to_comment__isnull=True)
         annotated = annotate_comments(comments)
         serializer = CommentListSerializer(
             annotated, many=True, context={"request": res.wsgi_request}
@@ -127,7 +116,9 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(serializer.data, res.data["results"])
 
     def test_get_comment_replies(self):
-        create_number_of_comments(3, self.post, profile=self.profile, reply_to_comment=self.comment)
+        create_number_of_comments(
+            3, self.post, profile=self.profile, reply_to_comment=self.comment
+        )
 
         res = self.client.get(comment_replies_list(self.comment.id))
 
@@ -157,14 +148,18 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         profiles_liked = self.comment.commentrate_set.filter(like=True)
-        self.assertNotIn(self.profile.id, profiles_liked.values_list("profile", flat=True))
+        self.assertNotIn(
+            self.profile.id, profiles_liked.values_list("profile", flat=True)
+        )
 
     def test_dislike_comment(self):
         res = self.client.post(dislike_remove_disliked_url(self.comment.id))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         profiles_disliked = self.comment.commentrate_set.filter(like=False)
-        self.assertIn(self.profile.id, profiles_disliked.values_list("profile", flat=True))
+        self.assertIn(
+            self.profile.id, profiles_disliked.values_list("profile", flat=True)
+        )
 
     def test_dislike_remove_dislike_comment(self):
         CommentRate.objects.create(
@@ -175,7 +170,9 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         profiles_disliked = self.comment.commentrate_set.filter(like=False)
-        self.assertNotIn(self.profile.id, profiles_disliked.values_list("profile", flat=True))
+        self.assertNotIn(
+            self.profile.id, profiles_disliked.values_list("profile", flat=True)
+        )
 
     def test_like_comment_profile_required(self):
         self.profile.delete()

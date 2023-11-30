@@ -12,15 +12,10 @@ from rest_framework import status
 from social_media.serializers import (
     PostSerializer,
     PostListSerializer,
-
-    ProfileListSerializer
+    ProfileListSerializer,
 )
 
-from social_media.models import (
-    Post,
-    PostRate,
-    Profile
-)
+from social_media.models import Post, PostRate, Profile
 
 from .models_create_sample import (
     detail_url,
@@ -166,14 +161,18 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         profiles_liked = self.post.postrate_set.filter(like=True)
-        self.assertNotIn(self.profile.id, profiles_liked.values_list("profile", flat=True))
+        self.assertNotIn(
+            self.profile.id, profiles_liked.values_list("profile", flat=True)
+        )
 
     def test_dislike_post(self):
         res = self.client.post(dislike_remove_disliked_url(self.post.id))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         profiles_disliked = self.post.postrate_set.filter(like=False)
-        self.assertIn(self.profile.id, profiles_disliked.values_list("profile", flat=True))
+        self.assertIn(
+            self.profile.id, profiles_disliked.values_list("profile", flat=True)
+        )
 
     def test_dislike_remove_dislike_post(self):
         PostRate.objects.create(like=False, profile=self.profile, post=self.post)
@@ -182,12 +181,18 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         profiles_disliked = self.post.postrate_set.filter(like=False)
-        self.assertNotIn(self.profile.id, profiles_disliked.values_list("profile", flat=True))
+        self.assertNotIn(
+            self.profile.id, profiles_disliked.values_list("profile", flat=True)
+        )
 
     def test_profiles_liked_posts(self):
-        profile2 = get_user_model().objects.create_user(
-            username="TestDisliked", password="ectevy", email="disliked@gmail.com"
-        ).profile
+        profile2 = (
+            get_user_model()
+            .objects.create_user(
+                username="TestDisliked", password="ectevy", email="disliked@gmail.com"
+            )
+            .profile
+        )
 
         PostRate.objects.create(like=True, profile=self.profile, post=self.post)
         PostRate.objects.create(like=False, profile=profile2, post=self.post)
@@ -196,7 +201,9 @@ class AuthenticatedPostApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        profiles_liked = self.post.postrate_set.filter(like=True).values_list("profile", flat=True)
+        profiles_liked = self.post.postrate_set.filter(like=True).values_list(
+            "profile", flat=True
+        )
         profiles = Profile.objects.filter(id__in=profiles_liked)
         serializer = ProfileListSerializer(
             profiles, many=True, context={"request": res.wsgi_request}
@@ -205,9 +212,13 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertNotIn(profile2, profiles_liked)
 
     def test_profiles_disliked_posts(self):
-        profile2 = get_user_model().objects.create_user(
-            username="TestDisliked", password="ectevy", email="disliked@gmail.com"
-        ).profile
+        profile2 = (
+            get_user_model()
+            .objects.create_user(
+                username="TestDisliked", password="ectevy", email="disliked@gmail.com"
+            )
+            .profile
+        )
         PostRate.objects.create(like=True, profile=profile2, post=self.post)
         PostRate.objects.create(like=False, profile=self.profile, post=self.post)
 
@@ -215,7 +226,9 @@ class AuthenticatedPostApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        profiles_disliked = self.post.postrate_set.filter(like=False).values_list("profile", flat=True)
+        profiles_disliked = self.post.postrate_set.filter(like=False).values_list(
+            "profile", flat=True
+        )
         profiles = Profile.objects.filter(id__in=profiles_disliked)
         serializer = ProfileListSerializer(
             profiles, many=True, context={"request": res.wsgi_request}
@@ -232,7 +245,9 @@ class AuthenticatedPostApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        posts_liked = self.profile.postrate_set.filter(like=True).values_list("post", flat=True)
+        posts_liked = self.profile.postrate_set.filter(like=True).values_list(
+            "post", flat=True
+        )
         posts = Post.objects.filter(id__in=posts_liked)
         annotated = annotate_posts(posts)
 
@@ -251,7 +266,9 @@ class AuthenticatedPostApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        posts_disliked = self.profile.postrate_set.filter(like=False).values_list("post", flat=True)
+        posts_disliked = self.profile.postrate_set.filter(like=False).values_list(
+            "post", flat=True
+        )
         posts = Post.objects.filter(id__in=posts_disliked)
         annotated = annotate_posts(posts)
 
@@ -269,9 +286,7 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_valid_post(self):
-        data = {
-            "content": "Yeah this is test"
-        }
+        data = {"content": "Yeah this is test"}
         res = self.client.post(POST_LIST, data=data)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
@@ -284,12 +299,8 @@ class AuthenticatedPostApiTests(TestCase):
         self.assertEqual(serializer.data, res.data)
 
     def test_update_post(self):
-        data_put = {
-            "content": "Yeah this is test"
-        }
-        data_patch = {
-            "tags": ["test"]
-        }
+        data_put = {"content": "Yeah this is test"}
+        data_patch = {"tags": ["test"]}
         res = self.client.put(detail_url("post", self.post.id), data=data_put)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)

@@ -18,22 +18,24 @@ from django.contrib import admin
 from django.urls import path, include
 
 from drf_spectacular.views import (
-    SpectacularRedocView, SpectacularAPIView, SpectacularSwaggerView)
+    SpectacularRedocView,
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+)
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("user.urls", namespace="user")),
-    path("api/social_media/", include("social_media.urls", namespace="social_media")),
-
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
-        "api/doc/redoc/",
-        SpectacularRedocView.as_view(url_name="schema")
+        "api/social_media/",
+        include("social_media.urls", namespace="social_media")
     ),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/doc/redoc/", SpectacularRedocView.as_view(url_name="schema")),
     path(
         "api/doc/swagger/",
         SpectacularSwaggerView.as_view(url_name="schema"),
-        name="swagger"
+        name="swagger",
     ),
-
     path("__debug__/", include("debug_toolbar.urls")),
 ]

@@ -12,7 +12,10 @@ class ProfileInline(admin.StackedInline):
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    """Define admin model for the custom User model with email and username fields."""
+    """
+    Define admin model for the custom User model
+    with email and username fields.
+    """
 
     fieldsets = (
         (None, {"fields": ("email", "username", "password")}),

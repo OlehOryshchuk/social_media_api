@@ -18,7 +18,9 @@ class ProfileAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        queryset = queryset.select_related("user",)
+        queryset = queryset.select_related(
+            "user",
+        )
 
         return queryset
 
@@ -39,7 +41,7 @@ class PostAdmin(admin.ModelAdmin):
         tags = []
         for tag in obj.tags.all():
             tags.append(str(tag))
-        return ', '.join(tags)
+        return ", ".join(tags)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

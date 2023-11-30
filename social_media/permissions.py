@@ -24,7 +24,11 @@ class IsOwnerOrReadOnly(BasePermission):
 
 
 class IsAuthenticatedAndUserHaveProfile(IsAuthenticated):
-    message = {"error": "You must be authenticated and have profile to perform this action"}
+    message = {
+        "error": (
+            "You must be authenticated and have profile to perform this action"
+        )
+    }
 
     def has_permission(self, request, view):
         is_authenticated = super().has_permission(request, view)

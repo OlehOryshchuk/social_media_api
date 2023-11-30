@@ -11,14 +11,10 @@ from taggit.serializers import TagListSerializerField
 from social_media.serializers import (
     PostListSerializer,
     TagListSerializer,
-    TagSerializer
+    TagSerializer,
 )
 
-from social_media.models import (
-    Post,
-    PostRate,
-    Profile
-)
+from social_media.models import Post, PostRate, Profile
 
 from .models_create_sample import (
     detail_url,

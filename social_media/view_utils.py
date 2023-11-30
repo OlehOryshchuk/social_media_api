@@ -21,21 +21,19 @@ from rest_framework.decorators import action
 
 def count_likes_dislikes(queryset: QuerySet, rate_model: str) -> QuerySet:
     """Count number of likes and dislikes"""
-    if type(rate_model) != str:
+    if not isinstance(rate_model, str):
         raise ValueError("rate_model have to be string")
     rate_model = rate_model.lower()
 
     queryset = queryset.annotate(
         num_of_likes=Count(
             rate_model,
-            filter=Q(**{f"{rate_model}__like": True}),
-            distinct=True
+            filter=Q(**{f"{rate_model}__like": True}), distinct=True
         ),
         num_of_dislikes=Count(
             rate_model,
-            filter=Q(**{f"{rate_model}__like": False}),
-            distinct=True
-        )
+            filter=Q(**{f"{rate_model}__like": False}), distinct=True
+        ),
     ).order_by(
         "-num_of_likes",
         "num_of_dislikes",
@@ -59,7 +57,9 @@ class LikeDislikeObjectMixin(ABC):
         self._like_dislike_or_remove(request, True)
         return Response(status=status.HTTP_200_OK)
 
-    @action(methods=["post"], detail=True, url_path="dislike", url_name="dislike")
+    @action(
+        methods=["post"], detail=True, url_path="dislike", url_name="dislike"
+    )
     def dislike_remove_dislike(self, request, pk):
         """DisLike post or remove dislike"""
         self._like_dislike_or_remove(request, False)
@@ -77,6 +77,7 @@ class PaginateResponseMixin:
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 def schema_filter_by_username(endpoint: Callable):
     return extend_schema(
         parameters=[
@@ -89,9 +90,9 @@ def schema_filter_by_username(endpoint: Callable):
                     OpenApiExample(
                         "Example1",
                         description="Search by profile by user username",
-                        value="br"
+                        value="br",
                     )
-                ]
+                ],
             )
         ]
     )(endpoint)

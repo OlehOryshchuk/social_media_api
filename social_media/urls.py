@@ -28,16 +28,12 @@ urlpatterns = [
     ),
     path(
         "post/comments/<int:pk>/replies/",
-        CommentViewSet.as_view(
-            {"get": "replies"}
-        ),
+        CommentViewSet.as_view({"get": "replies"}),
         name="comment-replies",
     ),
     path(
         "post/comments/<int:pk>/",
-        CommentViewSet.as_view(
-            {**up_de_rt}
-        ),
+        CommentViewSet.as_view({**up_de_rt}),
         name="comment-manager",
     ),
     path(
