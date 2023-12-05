@@ -94,7 +94,7 @@ class UnauthenticatedProfileApiTests(TestCase):
         self.assertIn("profile_url", first_profile)
 
     def test_detail_allow_anonymous_user(self):
-        res = self.client.get(detail_url("profile", self.user.id))
+        res = self.client.get(detail_url("profile", self.user.profile.id))
 
         profile = annotate_profile(self.user.profile)
         serializer = ProfileDetailSerializer(
@@ -105,7 +105,7 @@ class UnauthenticatedProfileApiTests(TestCase):
         self.assertEqual(res.data, serializer.data)
 
     def test_detail_response_has_needed_fields(self):
-        res = self.client.get(detail_url("profile", self.user.id))
+        res = self.client.get(detail_url("profile", self.user.profile.id))
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
