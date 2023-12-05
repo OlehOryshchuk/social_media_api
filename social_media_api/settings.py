@@ -103,6 +103,14 @@ DATABASES = {
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
     }
 }
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -183,12 +191,13 @@ DJOSER = {
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_URL": (
-        "api/user/password-reset-confirm/<uid64>/<token>/"
+        "user/password_reset_confirm/<str:uidb64>/<str:token>/"
     ),
     "SERIALIZERS": {
         "current_user": "user.serializers.UserSerializer",
     },
     "EMAIL": {"password_reset": "user.views.PasswordResetEmail"},
+    "LOGOUT_ON_PASSWORD_CHANGE": True,
 }
 
 # Set drf_spectacular settings
@@ -204,12 +213,11 @@ SPECTACULAR_SETTINGS = {
         "defaultModelExpandDepth": 2,
     },
 }
-
 # Email configurations
 
-EMAIL_HOST = "sandbox.smtp.mailtrap.io"
-EMAIL_HOST_USER = "bb6b2239e4a7a7"
-EMAIL_HOST_PASSWORD = "f0df6386f6de08"
-EMAIL_PORT = "2525"
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
