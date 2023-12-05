@@ -24,6 +24,33 @@ services:
         - .env
       volumes:
         - db_data:/var/lib/postgresql/data
+
+    axigen_mail_service:
+      image: axigen/axigen
+      container_name: axigen
+      restart: always
+      volumes:
+        - axigen_data:/axigen/var
+      ports:
+        # The following services are enabled and mapped as 'exposed' TCP ports in Docker:
+        #
+        # SMTP (25 - non secure, 465 - TLS)
+        # IMAP (143 - non secure, 993 - TLS)
+        # POP3 (110 - non secure, 995 - TLS)
+        # WEBMAIL (80 - non secure, 443 - TLS)
+        # WEBADMIN (9000 - non secure, 9443 - TLS)
+        # CLI (7000 - non secure)
+
+        - "465:465"
+        - "993:993"
+        - "995:995"
+        - "443:443"
+        - "9443:9443"
+        - "7000:7000"
+      depends_on:
+        - app
+
 volumes:
   db_data:
     driver: local
+  axigen_data:
