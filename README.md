@@ -1,4 +1,4 @@
-## Train Station API Service
+## Social Media API
 
 ![Django](https://img.shields.io/badge/Django-4.2.7-brightgreen.svg)
 ![Django Rest Framework](https://img.shields.io/badge/Django%20Rest%20Framework-3.14.0-blue.svg)
