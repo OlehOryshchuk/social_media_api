@@ -61,9 +61,6 @@ class ProfileViewSet(PaginateResponseMixin, viewsets.ModelViewSet):
                 num_of_posts=Count("posts", distinct=True),
             )
 
-        if self.action == "followers":
-            pass
-
         return queryset
 
     def get_serializer_class(self):

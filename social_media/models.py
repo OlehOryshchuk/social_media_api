@@ -12,13 +12,21 @@ def get_file_new_name(instance) -> str:
     """Return filename base on instance"""
     if isinstance(instance, Profile):
         return f"{instance.user.username}"
-    return f"{instance.author.user.username}_post"
+    return f"{instance.author.user.username}"
 
 
 def custom_image_file_path(instance, filename):
     _, ext = os.path.splitext(filename)
     filename = get_file_new_name(instance)
     return f"{slugify(filename)}_{uuid.uuid4()}{ext}"
+
+
+def profile_picture_file_path(instance, filename):
+    return f"profile_pictures/{custom_image_file_path(instance, filename)}"
+
+
+def post_picture_file_path(instance, filename):
+    return f"post_picture/{custom_image_file_path(instance, filename)}"
 
 
 class Profile(models.Model):
@@ -31,7 +39,7 @@ class Profile(models.Model):
         "self", related_name="followers", symmetrical=False, blank=True
     )
     profile_picture = models.ImageField(
-        null=True, blank=True, upload_to=custom_image_file_path
+        null=True, blank=True, upload_to=profile_picture_file_path
     )
     bio = models.TextField(max_length=1000, blank=True)
 
@@ -46,7 +54,7 @@ class Post(models.Model):
         on_delete=models.CASCADE,
     )
     image = models.ImageField(
-        upload_to=custom_image_file_path, blank=True, null=True
+        upload_to=post_picture_file_path, blank=True, null=True
     )
     content = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
